@@ -141,6 +141,14 @@ body {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CodeMirror のルート div を親いっぱいに伸ばし、内部の cm-scroller でスクロールさせる。 */
+.editor-wrap > div {
+  flex: 1;
+  min-height: 0;
 }
 
 .editor-wrap .cm-editor {
@@ -280,6 +288,14 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+summary.case-head {
+  cursor: pointer;
+}
+
+summary.case-head::-webkit-details-marker {
+  display: none;
 }
 
 .case-badge {

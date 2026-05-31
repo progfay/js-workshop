@@ -179,7 +179,7 @@ export default function App() {
             </div>
 
             <div className="drawer-content">
-              <ResultPanel result={result} running={running} />
+              <ResultPanel result={result} running={running} theme={theme} />
 
               <details className="tests-source">
                 <summary>テストケースを見る ({current.tests.length})</summary>

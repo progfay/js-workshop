@@ -10,6 +10,8 @@ import type { ProblemTestCase } from '../problems/types'
 export interface CaseResult {
   name: string
   passed: boolean
+  /** テストケースのソースコード (受講者にも公開する, SPEC 4.6) */
+  code: string
   /** 失敗時に throw された Error の message (整形済み, SPEC 6) */
   errorMessage?: string
   /** タイムアウト (無限ループ等) で打ち切られたか */
@@ -115,7 +117,7 @@ function runCase(
   vm.dispose()
   runtime.dispose()
 
-  return { name: test.name, passed, errorMessage, timedOut, logs }
+  return { name: test.name, code: test.code, passed, errorMessage, timedOut, logs }
 }
 
 /**
