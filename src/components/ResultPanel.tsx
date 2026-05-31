@@ -28,46 +28,33 @@ export function ResultPanel({ result, running, theme }: Props) {
       </p>
 
       <ul className="case-list">
-        {result.cases.map((c) =>
-          c.passed ? (
-            // 成功ケース: 折りたたみ。開くとテストケースのコードを表示する。
-            <li key={c.name} className="is-pass">
-              <details>
-                <summary className="case-head">
-                  <span className="case-badge">PASS</span>
-                  <span className="case-name">{c.name}</span>
-                </summary>
-                <CodeBlock code={c.code} theme={theme} />
-                {c.logs.length > 0 && (
-                  <details className="case-logs">
-                    <summary>console.log ({c.logs.length})</summary>
-                    <pre>{c.logs.join('\n')}</pre>
-                  </details>
-                )}
-              </details>
-            </li>
-          ) : (
-            // 失敗ケース: throw された Error message と log をそのまま表示する。
-            <li key={c.name} className="is-fail">
-              <div className="case-head">
-                <span className="case-badge">FAIL</span>
-                <span className="case-name">{c.name}</span>
-                {c.timedOut && <span className="case-tag">timeout</span>}
-              </div>
-              {c.errorMessage && <pre className="case-error">{c.errorMessage}</pre>}
-              <details className="case-code">
-                <summary>テストケース</summary>
-                <CodeBlock code={c.code} theme={theme} />
-              </details>
+        {result.cases.map((c) => (
+          // PASS / FAIL とも開閉式。summary(左に三角)を押すとテストコードを開閉。
+          // FAIL は summary 内に Error message も表示する(赤い領域がクリック対象)。
+          <li key={c.name} className={c.passed ? 'is-pass' : 'is-fail'}>
+            <details>
+              <summary className="case-summary">
+                <span className="case-summary-body">
+                  <span className="case-head">
+                    <span className="case-badge">{c.passed ? 'PASS' : 'FAIL'}</span>
+                    <span className="case-name">{c.name}</span>
+                    {c.timedOut && <span className="case-tag">timeout</span>}
+                  </span>
+                  {c.errorMessage && <span className="case-error">{c.errorMessage}</span>}
+                </span>
+              </summary>
+
+              <CodeBlock code={c.code} theme={theme} />
+
               {c.logs.length > 0 && (
                 <details className="case-logs">
                   <summary>console.log ({c.logs.length})</summary>
                   <pre>{c.logs.join('\n')}</pre>
                 </details>
               )}
-            </li>
-          ),
-        )}
+            </details>
+          </li>
+        ))}
       </ul>
     </div>
   )

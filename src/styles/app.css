@@ -56,21 +56,21 @@ body {
   margin: 0;
 }
 
-/* 3カラム: ナビ | 説明 | エディタ列 */
+/* 3カラム: ナビ | 説明 | エディタ列 (説明とエディタの境界はドラッグ可能) */
 .app-body {
   flex: 1;
-  display: grid;
-  grid-template-columns: 220px minmax(280px, 1fr) minmax(380px, 1.25fr);
+  display: flex;
   min-height: 0;
 }
 
 .app-body > * {
   min-height: 0;
-  min-width: 0;
 }
 
 /* 左: Sidebar */
 .sidebar {
+  width: 220px;
+  flex-shrink: 0;
   border-right: 1px solid var(--border);
   background: var(--bg-elevated);
   overflow-y: auto;
@@ -124,15 +124,45 @@ body {
   color: var(--accent-text);
 }
 
-/* 中央: 問題説明 */
+/* 中央: 問題説明 (幅は inline style、ドラッグで可変) */
 .description {
+  flex-shrink: 0;
   overflow-y: auto;
   padding: 1.25rem 1.5rem;
+}
+
+/* 説明とエディタを分ける、左右ドラッグ可能な縦線 */
+.col-resizer {
+  position: relative;
+  width: 8px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
+}
+
+.col-resizer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 40px;
+  border-radius: 3px;
+  background: var(--border);
+  transform: translate(-50%, -50%);
+}
+
+.col-resizer:hover::before {
+  background: var(--text-muted);
 }
 
 /* 右: ツールバー + エディタ + ドロワー */
 .editor-pane {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -328,29 +358,44 @@ body {
   gap: 0.5rem;
 }
 
-/* PASS ケースは開閉式。三角で open/close を表現する。 */
-summary.case-head {
+/* PASS / FAIL の開閉 summary。左に open/close の三角を置く。 */
+.case-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   cursor: pointer;
+  list-style: none;
 }
 
-summary.case-head::-webkit-details-marker {
+.case-summary::-webkit-details-marker {
   display: none;
 }
 
-summary.case-head::before {
+.case-summary::before {
   content: '▶';
+  flex-shrink: 0;
+  margin-top: 0.25rem;
   font-size: 0.6rem;
   color: var(--text-muted);
   transition: transform 0.12s ease;
 }
 
-details[open] > summary.case-head::before {
+details[open] > .case-summary::before {
   transform: rotate(90deg);
+}
+
+.case-summary-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .case-badge {
   font-size: 0.7rem;
   font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
   color: #fff;
@@ -379,18 +424,22 @@ details[open] > summary.case-head::before {
 
 .case-error,
 .case-logs pre {
+  display: block;
   background: var(--code-bg);
   border-radius: 4px;
   padding: 0.5rem;
-  margin: 0.5rem 0 0;
+  margin: 0;
   overflow-x: auto;
   font-size: 0.82rem;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.case-logs summary,
-.case-code summary {
+.case-logs pre {
+  margin-top: 0.4rem;
+}
+
+.case-logs summary {
   cursor: pointer;
   color: var(--text-muted);
   font-size: 0.82rem;
