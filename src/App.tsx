@@ -6,12 +6,12 @@ import { Editor } from './components/Editor'
 import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
 import { ResizableDrawer } from './components/ResizableDrawer'
-import { useTheme } from './hooks/useTheme'
+import { useSystemTheme } from './hooks/useTheme'
 import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
 import './styles/app.css'
 
 export default function App() {
-  const { theme, toggle } = useTheme()
+  const theme = useSystemTheme()
   const [currentId, setCurrentId] = useState<string>(() => problems[0]?.id ?? '')
   const current = useMemo<Problem | undefined>(
     () => problems.find((problem) => problem.id === currentId),
@@ -22,20 +22,23 @@ export default function App() {
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
 
-  // 問題切り替え時: 保存コード or テンプレートを読み込み、前回の結果を消す。
+  // 問題を開いたとき: 保存済みコードがあれば復元、なければ template (SPEC 9)。
+  // 前回の採点結果もクリアする。
   useEffect(() => {
     if (!current) return
     setCode(loadCode(current.id) ?? current.template)
     setResult(null)
   }, [current])
 
-  // コード変更を localStorage に保存 (SPEC 9)。
-  useEffect(() => {
-    if (current) saveCode(current.id, code)
-  }, [current, code])
-
   if (!current) {
     return <p className="empty">問題がありません。</p>
+  }
+
+  // コード変更は都度 localStorage に保存する。問題切り替え時の取り違えを避けるため
+  // effect ではなく onChange 側で (id, code) を必ず一致させて保存する。
+  const handleCodeChange = (value: string) => {
+    setCode(value)
+    saveCode(current.id, value)
   }
 
   const run = async () => {
@@ -51,16 +54,16 @@ export default function App() {
 
   const reset = () => {
     setCode(current.template)
+    saveCode(current.id, current.template)
     setResult(null)
   }
+
+  const solved = progress[current.id] === true
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>JavaScript 演習</h1>
-        <button className="theme-toggle" onClick={toggle}>
-          {theme === 'dark' ? '☀️ ライト' : '🌙 ダーク'}
-        </button>
       </header>
 
       <div className="app-body">
@@ -86,15 +89,23 @@ export default function App() {
           ))}
         </aside>
 
-        {/* 中央: 問題説明 */}
+        {/* 中央: 問題説明 + 正解時の解説 */}
         <section className="description">
           <Markdown>{current.problemMarkdown}</Markdown>
+
+          {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}
+          {solved && (
+            <section className="solution">
+              <h2>解説</h2>
+              <Markdown>{current.solutionMarkdown}</Markdown>
+            </section>
+          )}
         </section>
 
         {/* 右: エディタ + 下部ドロワー */}
         <section className="editor-pane">
           <div className="editor-wrap">
-            <Editor value={code} onChange={setCode} theme={theme} />
+            <Editor value={code} onChange={handleCodeChange} theme={theme} />
           </div>
 
           <ResizableDrawer>
@@ -108,11 +119,7 @@ export default function App() {
             </div>
 
             <div className="drawer-content">
-              <ResultPanel
-                result={result}
-                running={running}
-                solutionMarkdown={current.solutionMarkdown}
-              />
+              <ResultPanel result={result} running={running} />
 
               <details className="tests-source">
                 <summary>テストケースを見る ({current.tests.length})</summary>

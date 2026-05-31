@@ -56,15 +56,6 @@ body {
   margin: 0;
 }
 
-.theme-toggle {
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  border-radius: 6px;
-  padding: 0.35rem 0.7rem;
-  cursor: pointer;
-}
-
 /* 3カラム: ナビ | 説明 | エディタ列 */
 .app-body {
   flex: 1;

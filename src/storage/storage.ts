@@ -3,9 +3,7 @@
 
 const CODE_PREFIX = 'jsw:code:'
 const PROGRESS_KEY = 'jsw:progress'
-const THEME_KEY = 'jsw:theme'
 
-export type ThemeName = 'light' | 'dark'
 export type Progress = Record<string, boolean>
 
 /** 受講者が書いたコードを問題ごとに読み込む。 */
@@ -46,22 +44,4 @@ export function setSolved(problemId: string, solved: boolean): Progress {
     /* 保存できなくても処理は続行する */
   }
   return progress
-}
-
-/** 保存済みテーマ(なければ null)。 */
-export function loadTheme(): ThemeName | null {
-  try {
-    const value = localStorage.getItem(THEME_KEY)
-    return value === 'light' || value === 'dark' ? value : null
-  } catch {
-    return null
-  }
-}
-
-export function saveTheme(theme: ThemeName): void {
-  try {
-    localStorage.setItem(THEME_KEY, theme)
-  } catch {
-    /* 保存できなくても処理は続行する */
-  }
 }

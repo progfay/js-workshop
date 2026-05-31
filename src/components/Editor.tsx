@@ -1,6 +1,6 @@
 import CodeMirror from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
-import type { ThemeName } from '../storage/storage'
+import type { ThemeName } from '../hooks/useTheme'
 
 interface Props {
   value: string

@@ -1,23 +1,30 @@
 import { useEffect, useState } from 'react'
-import { loadTheme, saveTheme, type ThemeName } from '../storage/storage'
 
-function systemTheme(): ThemeName {
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+export type ThemeName = 'light' | 'dark'
+
+const QUERY = '(prefers-color-scheme: dark)'
+
+function getSystemTheme(): ThemeName {
+  return window.matchMedia?.(QUERY).matches ? 'dark' : 'light'
 }
 
 /**
- * ライト/ダークテーマ (SPEC 3)。保存値 > OS 設定 の優先順で初期化し、
- * 変更を <html data-theme> と localStorage に反映する。
+ * OS のカラースキーム (system theme) に追従するテーマ (SPEC 3)。
+ * トグルや永続化は持たず、OS 設定の変更にもリアルタイムで追従する。
  */
-export function useTheme() {
-  const [theme, setTheme] = useState<ThemeName>(() => loadTheme() ?? systemTheme())
+export function useSystemTheme(): ThemeName {
+  const [theme, setTheme] = useState<ThemeName>(getSystemTheme)
+
+  useEffect(() => {
+    const media = window.matchMedia(QUERY)
+    const onChange = (event: MediaQueryListEvent) => setTheme(event.matches ? 'dark' : 'light')
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    saveTheme(theme)
   }, [theme])
 
-  const toggle = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-
-  return { theme, toggle }
+  return theme
 }

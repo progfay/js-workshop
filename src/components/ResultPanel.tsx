@@ -1,14 +1,12 @@
 import type { GradeResult } from '../runtime/runner'
-import { Markdown } from './Markdown'
 
 interface Props {
   result: GradeResult | null
   running: boolean
-  solutionMarkdown: string
 }
 
 /** 採点結果の表示 (SPEC 6): 合否一覧 / Error message / console.log 出力。 */
-export function ResultPanel({ result, running, solutionMarkdown }: Props) {
+export function ResultPanel({ result, running }: Props) {
   if (running) {
     return <p className="result-status">実行中…</p>
   }
@@ -44,14 +42,6 @@ export function ResultPanel({ result, running, solutionMarkdown }: Props) {
           </li>
         ))}
       </ul>
-
-      {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}
-      {result.solved && (
-        <section className="solution">
-          <h2>解説</h2>
-          <Markdown>{solutionMarkdown}</Markdown>
-        </section>
-      )}
     </div>
   )
 }
