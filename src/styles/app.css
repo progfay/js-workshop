@@ -222,9 +222,16 @@ body {
   cursor: default;
 }
 
-.drawer-toolbar .reset {
+.drawer-toolbar .reset,
+.drawer-toolbar .format {
   background: var(--bg);
   color: var(--text);
+}
+
+.format-error {
+  margin-left: auto;
+  color: var(--fail);
+  font-size: 0.78rem;
 }
 
 /* Result */

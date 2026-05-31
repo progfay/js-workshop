@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { categories, problems } from './problems'
 import type { Problem } from './problems/types'
 import { grade, type GradeResult } from './runtime/runner'
@@ -9,6 +9,7 @@ import { ResizableDrawer } from './components/ResizableDrawer'
 import { CodeBlock } from './components/CodeBlock'
 import { useSystemTheme } from './hooks/useTheme'
 import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
+import { formatJs } from './lib/format'
 import './styles/app.css'
 
 export default function App() {
@@ -22,6 +23,9 @@ export default function App() {
   const [result, setResult] = useState<GradeResult | null>(null)
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
+  const [formatError, setFormatError] = useState<string | null>(null)
+  // キーボードショートカット(⌘/Ctrl+S)から最新の整形処理を呼ぶための ref。
+  const formatRef = useRef<() => void>(() => {})
 
   // 問題を開いたとき: 保存済みコードがあれば復元、なければ template (SPEC 9)。
   // 前回の採点結果もクリアする。
@@ -29,7 +33,20 @@ export default function App() {
     if (!current) return
     setCode(loadCode(current.id) ?? current.template)
     setResult(null)
+    setFormatError(null)
   }, [current])
+
+  // ⌘/Ctrl+S で整形(ブラウザの保存ダイアログは抑止する)。
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault()
+        formatRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   if (!current) {
     return <p className="empty">問題がありません。</p>
@@ -58,6 +75,20 @@ export default function App() {
     saveCode(current.id, current.template)
     setResult(null)
   }
+
+  // Prettier で整形。構文エラー時はメッセージを出す。
+  const format = async () => {
+    try {
+      const formatted = await formatJs(code)
+      setCode(formatted)
+      saveCode(current.id, formatted)
+      setFormatError(null)
+    } catch {
+      setFormatError('整形できませんでした(構文エラーの可能性があります)')
+    }
+  }
+  // ⌘/Ctrl+S から常に最新のクロージャを呼べるよう毎レンダーで更新する。
+  formatRef.current = () => void format()
 
   const solved = progress[current.id] === true
 
@@ -114,9 +145,18 @@ export default function App() {
               <button className="run" onClick={run} disabled={running}>
                 {running ? '実行中…' : '▶ 実行'}
               </button>
+              <button
+                className="format"
+                onClick={() => void format()}
+                disabled={running}
+                title="⌘/Ctrl+S"
+              >
+                整形
+              </button>
               <button className="reset" onClick={reset} disabled={running}>
                 リセット
               </button>
+              {formatError && <span className="format-error">{formatError}</span>}
             </div>
 
             <div className="drawer-content">
