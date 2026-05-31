@@ -5,6 +5,7 @@ import { grade, type GradeResult } from './runtime/runner'
 import { Editor } from './components/Editor'
 import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
+import { ResizableDrawer } from './components/ResizableDrawer'
 import { useTheme } from './hooks/useTheme'
 import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
 import './styles/app.css'
@@ -63,6 +64,7 @@ export default function App() {
       </header>
 
       <div className="app-body">
+        {/* 左: 問題ナビゲーション */}
         <aside className="sidebar">
           {categories.map((category) => (
             <div key={category.name} className="cat">
@@ -84,43 +86,46 @@ export default function App() {
           ))}
         </aside>
 
-        <main className="main">
-          <section className="problem panel">
-            <Markdown>{current.problemMarkdown}</Markdown>
-          </section>
+        {/* 中央: 問題説明 */}
+        <section className="description">
+          <Markdown>{current.problemMarkdown}</Markdown>
+        </section>
 
-          <section className="editor-pane panel">
-            <div className="editor-wrap">
-              <Editor value={code} onChange={setCode} theme={theme} />
-            </div>
-            <div className="actions">
+        {/* 右: エディタ + 下部ドロワー */}
+        <section className="editor-pane">
+          <div className="editor-wrap">
+            <Editor value={code} onChange={setCode} theme={theme} />
+          </div>
+
+          <ResizableDrawer>
+            <div className="drawer-toolbar">
               <button className="run" onClick={run} disabled={running}>
-                {running ? '実行中…' : '実行'}
+                {running ? '実行中…' : '▶ 実行'}
               </button>
               <button className="reset" onClick={reset} disabled={running}>
                 リセット
               </button>
             </div>
-          </section>
 
-          <section className="result-pane panel">
-            <ResultPanel
-              result={result}
-              running={running}
-              solutionMarkdown={current.solutionMarkdown}
-            />
+            <div className="drawer-content">
+              <ResultPanel
+                result={result}
+                running={running}
+                solutionMarkdown={current.solutionMarkdown}
+              />
 
-            <details className="tests-source">
-              <summary>テストケースを見る ({current.tests.length})</summary>
-              {current.tests.map((test) => (
-                <div key={test.name} className="test-source">
-                  <h3>{test.name}</h3>
-                  <pre>{test.code}</pre>
-                </div>
-              ))}
-            </details>
-          </section>
-        </main>
+              <details className="tests-source">
+                <summary>テストケースを見る ({current.tests.length})</summary>
+                {current.tests.map((test) => (
+                  <div key={test.name} className="test-source">
+                    <h3>{test.name}</h3>
+                    <pre>{test.code}</pre>
+                  </div>
+                ))}
+              </details>
+            </div>
+          </ResizableDrawer>
+        </section>
       </div>
     </div>
   )
