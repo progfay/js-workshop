@@ -55,6 +55,10 @@ export function ResultPanel({ result, running, theme }: Props) {
                 {c.timedOut && <span className="case-tag">timeout</span>}
               </div>
               {c.errorMessage && <pre className="case-error">{c.errorMessage}</pre>}
+              <details className="case-code">
+                <summary>テストケース</summary>
+                <CodeBlock code={c.code} theme={theme} />
+              </details>
               {c.logs.length > 0 && (
                 <details className="case-logs">
                   <summary>console.log ({c.logs.length})</summary>

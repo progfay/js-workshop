@@ -389,7 +389,8 @@ details[open] > summary.case-head::before {
   word-break: break-word;
 }
 
-.case-logs summary {
+.case-logs summary,
+.case-code summary {
   cursor: pointer;
   color: var(--text-muted);
   font-size: 0.82rem;
