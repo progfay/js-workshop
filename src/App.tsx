@@ -6,6 +6,7 @@ import { Editor } from './components/Editor'
 import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
 import { ResizableDrawer } from './components/ResizableDrawer'
+import { CodeBlock } from './components/CodeBlock'
 import { useSystemTheme } from './hooks/useTheme'
 import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
 import './styles/app.css'
@@ -91,13 +92,13 @@ export default function App() {
 
         {/* 中央: 問題説明 + 正解時の解説 */}
         <section className="description">
-          <Markdown>{current.problemMarkdown}</Markdown>
+          <Markdown theme={theme}>{current.problemMarkdown}</Markdown>
 
           {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}
           {solved && (
             <section className="solution">
               <h2>解説</h2>
-              <Markdown>{current.solutionMarkdown}</Markdown>
+              <Markdown theme={theme}>{current.solutionMarkdown}</Markdown>
             </section>
           )}
         </section>
@@ -126,7 +127,7 @@ export default function App() {
                 {current.tests.map((test) => (
                   <div key={test.name} className="test-source">
                     <h3>{test.name}</h3>
-                    <pre>{test.code}</pre>
+                    <CodeBlock code={test.code} theme={theme} />
                   </div>
                 ))}
               </details>
