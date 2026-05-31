@@ -12,9 +12,20 @@ import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './st
 import { formatJs } from './lib/format'
 import './styles/app.css'
 
+const PROBLEM_PARAM = 'problem'
+
+/** URL クエリ ?problem=<id> から初期表示する問題を決める。無効なら先頭の問題。 */
+function getInitialProblemId(): string {
+  const fromUrl = new URLSearchParams(window.location.search).get(PROBLEM_PARAM)
+  if (fromUrl && problems.some((problem) => problem.id === fromUrl)) {
+    return fromUrl
+  }
+  return problems[0]?.id ?? ''
+}
+
 export default function App() {
   const theme = useSystemTheme()
-  const [currentId, setCurrentId] = useState<string>(() => problems[0]?.id ?? '')
+  const [currentId, setCurrentId] = useState<string>(getInitialProblemId)
   const current = useMemo<Problem | undefined>(
     () => problems.find((problem) => problem.id === currentId),
     [currentId],
@@ -35,6 +46,14 @@ export default function App() {
     setResult(null)
     setFormatError(null)
   }, [current])
+
+  // 選択中の問題を URL クエリに反映する(履歴は汚さず replaceState)。
+  useEffect(() => {
+    if (!currentId) return
+    const params = new URLSearchParams(window.location.search)
+    params.set(PROBLEM_PARAM, currentId)
+    window.history.replaceState(null, '', `${window.location.pathname}?${params}${window.location.hash}`)
+  }, [currentId])
 
   // ⌘/Ctrl+S で整形(ブラウザの保存ダイアログは抑止する)。
   useEffect(() => {
