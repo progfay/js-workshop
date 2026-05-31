@@ -6,7 +6,6 @@ import { Editor } from './components/Editor'
 import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
 import { ResizableDrawer } from './components/ResizableDrawer'
-import { CodeBlock } from './components/CodeBlock'
 import { useSystemTheme } from './hooks/useTheme'
 import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
 import { formatJs } from './lib/format'
@@ -35,6 +34,8 @@ export default function App() {
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
   const [formatError, setFormatError] = useState<string | null>(null)
+  // 実行結果ドロワーはデフォルト非表示。実行時に開く。
+  const [drawerOpen, setDrawerOpen] = useState(false)
   // キーボードショートカット(⌘/Ctrl+S)から最新の整形処理を呼ぶための ref。
   const formatRef = useRef<() => void>(() => {})
 
@@ -45,6 +46,7 @@ export default function App() {
     setCode(loadCode(current.id) ?? current.template)
     setResult(null)
     setFormatError(null)
+    setDrawerOpen(false)
   }, [current])
 
   // 選択中の問題を URL クエリに反映する(履歴は汚さず replaceState)。
@@ -80,6 +82,7 @@ export default function App() {
 
   const run = async () => {
     setRunning(true)
+    setDrawerOpen(true)
     setResult(null)
     // 同期実行で固まる前に「実行中…」を描画させる。
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -93,6 +96,7 @@ export default function App() {
     setCode(current.template)
     saveCode(current.id, current.template)
     setResult(null)
+    setDrawerOpen(false)
   }
 
   // Prettier で整形。構文エラー時はメッセージを出す。
@@ -153,45 +157,52 @@ export default function App() {
           )}
         </section>
 
-        {/* 右: エディタ + 下部ドロワー */}
+        {/* 右: ツールバー + エディタ + 下部ドロワー(実行結果) */}
         <section className="editor-pane">
+          <div className="editor-toolbar">
+            <button className="run" onClick={run} disabled={running}>
+              {running ? '実行中…' : '▶ 実行'}
+            </button>
+            <button
+              className="format"
+              onClick={() => void format()}
+              disabled={running}
+              title="⌘/Ctrl+S"
+            >
+              整形
+            </button>
+            <button className="reset" onClick={reset} disabled={running}>
+              リセット
+            </button>
+            {formatError && <span className="format-error">{formatError}</span>}
+            {result && (
+              <button className="toggle-drawer" onClick={() => setDrawerOpen((open) => !open)}>
+                {drawerOpen ? '結果を隠す' : '結果を表示'}
+              </button>
+            )}
+          </div>
+
           <div className="editor-wrap">
             <Editor value={code} onChange={handleCodeChange} theme={theme} />
           </div>
 
-          <ResizableDrawer>
-            <div className="drawer-toolbar">
-              <button className="run" onClick={run} disabled={running}>
-                {running ? '実行中…' : '▶ 実行'}
-              </button>
-              <button
-                className="format"
-                onClick={() => void format()}
-                disabled={running}
-                title="⌘/Ctrl+S"
-              >
-                整形
-              </button>
-              <button className="reset" onClick={reset} disabled={running}>
-                リセット
-              </button>
-              {formatError && <span className="format-error">{formatError}</span>}
-            </div>
-
-            <div className="drawer-content">
-              <ResultPanel result={result} running={running} theme={theme} />
-
-              <details className="tests-source">
-                <summary>テストケースを見る ({current.tests.length})</summary>
-                {current.tests.map((test) => (
-                  <div key={test.name} className="test-source">
-                    <h3>{test.name}</h3>
-                    <CodeBlock code={test.code} theme={theme} />
-                  </div>
-                ))}
-              </details>
-            </div>
-          </ResizableDrawer>
+          {drawerOpen && (
+            <ResizableDrawer>
+              <div className="drawer-headerbar">
+                <span className="drawer-title">実行結果</span>
+                <button
+                  className="drawer-close"
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label="結果を閉じる"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="drawer-content">
+                <ResultPanel result={result} running={running} theme={theme} />
+              </div>
+            </ResizableDrawer>
+          )}
         </section>
       </div>
     </div>
