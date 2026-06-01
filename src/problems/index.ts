@@ -11,7 +11,55 @@ interface ProblemPlacement {
   order: number
 }
 
-const PLACEMENTS: ProblemPlacement[] = [{ id: 'array-sum', category: '配列', order: 1 }]
+// @recruit-tech/javascripting の問題をテーマ別カテゴリに分類して配置する。
+// order はこの並び順 (テーマごとに連続) に沿った通し番号。各テーマ内は元の menu.json の順序を踏襲。
+const PLACEMENTS: ProblemPlacement[] = [
+  // はじめの一歩
+  { id: 'introduction', category: 'はじめの一歩', order: 1 },
+  { id: 'variables', category: 'はじめの一歩', order: 2 },
+  { id: 'booleans', category: 'はじめの一歩', order: 3 },
+  { id: 'null-undefined', category: 'はじめの一歩', order: 4 },
+  // 文字列
+  { id: 'strings', category: '文字列', order: 5 },
+  { id: 'string-length', category: '文字列', order: 6 },
+  { id: 'revising-strings', category: '文字列', order: 7 },
+  // 数値
+  { id: 'numbers', category: '数値', order: 8 },
+  { id: 'rounding-numbers', category: '数値', order: 9 },
+  { id: 'number-to-string', category: '数値', order: 10 },
+  { id: 'fizzbuzz', category: '数値', order: 11 },
+  // 制御構文
+  { id: 'if-statement', category: '制御構文', order: 12 },
+  { id: 'for-loop', category: '制御構文', order: 13 },
+  // 配列
+  { id: 'arrays', category: '配列', order: 14 },
+  { id: 'accessing-array-values', category: '配列', order: 15 },
+  { id: 'looping-through-arrays', category: '配列', order: 16 },
+  { id: 'array-filtering', category: '配列', order: 17 },
+  { id: 'arrays-more', category: '配列', order: 18 },
+  // オブジェクト
+  { id: 'objects', category: 'オブジェクト', order: 19 },
+  { id: 'object-properties', category: 'オブジェクト', order: 20 },
+  { id: 'object-keys', category: 'オブジェクト', order: 21 },
+  { id: 'object-spreading', category: 'オブジェクト', order: 22 },
+  { id: 'destructuring', category: 'オブジェクト', order: 23 },
+  // 関数
+  { id: 'functions', category: '関数', order: 24 },
+  { id: 'function-arguments', category: '関数', order: 25 },
+  { id: 'arrow-functions', category: '関数', order: 26 },
+  // スコープとクロージャ
+  { id: 'scope', category: 'スコープとクロージャ', order: 27 },
+  { id: 'closure', category: 'スコープとクロージャ', order: 28 },
+  // 非同期処理
+  { id: 'callback', category: '非同期処理', order: 29 },
+  { id: 'promise', category: '非同期処理', order: 30 },
+  { id: 'promise-all', category: '非同期処理', order: 31 },
+  { id: 'async-await', category: '非同期処理', order: 32 },
+  { id: 'fetch', category: '非同期処理', order: 33 },
+  // 応用
+  { id: 'use-regex-luke', category: '応用', order: 34 },
+  { id: 'pagination', category: '応用', order: 35 },
+]
 
 interface Metadata {
   id: string
