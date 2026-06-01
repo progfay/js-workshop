@@ -13,6 +13,29 @@ import './styles/app.css'
 
 const PROBLEM_PARAM = 'problem'
 
+/**
+ * ローダ (dynamic import) を呼んで HTML を取得する。loader が変わるたびに読み直し、
+ * 高速クリックで前の問題の HTML が紛れ込まないよう古い結果は破棄する。
+ * import() 自体がモジュールをキャッシュするので再選択時は即座に解決する。
+ */
+function useAsyncHtml(loader: (() => Promise<string>) | undefined): string {
+  const [html, setHtml] = useState('')
+  useEffect(() => {
+    if (!loader) {
+      setHtml('')
+      return
+    }
+    let active = true
+    void loader().then((value) => {
+      if (active) setHtml(value)
+    })
+    return () => {
+      active = false
+    }
+  }, [loader])
+  return html
+}
+
 /** URL クエリ ?problem=<id> から初期表示する問題を決める。無効なら先頭の問題。 */
 function getInitialProblemId(): string {
   const fromUrl = new URLSearchParams(window.location.search).get(PROBLEM_PARAM)
@@ -98,6 +121,11 @@ export default function App() {
     }
   }, [])
 
+  // 問題文は押下時に、解説は正解表示時に dynamic import する。
+  const solved = !!current && progress[current.id] === true
+  const problemHtml = useAsyncHtml(current?.loadProblemHtml)
+  const solutionHtml = useAsyncHtml(solved ? current?.loadSolutionHtml : undefined)
+
   if (!current) {
     return <p className="empty">問題がありません。</p>
   }
@@ -149,8 +177,6 @@ export default function App() {
     document.body.style.userSelect = 'none'
   }
 
-  const solved = progress[current.id] === true
-
   return (
     <div className="app">
       <header className="app-header">
@@ -182,13 +208,13 @@ export default function App() {
 
         {/* 中央: 問題説明 + 正解時の解説 */}
         <section className="description" ref={descRef} style={{ width: descWidth }}>
-          <Markdown html={current.problemHtml} />
+          <Markdown html={problemHtml} />
 
           {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}
           {solved && (
             <section className="solution">
               <h2>解説</h2>
-              <Markdown html={current.solutionHtml} />
+              <Markdown html={solutionHtml} />
             </section>
           )}
         </section>

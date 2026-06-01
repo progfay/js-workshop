@@ -11,10 +11,10 @@ export interface Problem {
   /** category / order はローダ側で指定する (SPEC 4.2 / 8) */
   category: string
   order: number
-  /** ビルド時に markdown からレンダリング済みの HTML (problem.md) */
-  problemHtml: string
-  /** ビルド時に markdown からレンダリング済みの HTML (solution.md) */
-  solutionHtml: string
+  /** problem.md をビルド時に HTML 化したものを遅延ロードする (問題押下時に dynamic import) */
+  loadProblemHtml: () => Promise<string>
+  /** solution.md をビルド時に HTML 化したものを遅延ロードする (正解表示時に dynamic import) */
+  loadSolutionHtml: () => Promise<string>
   template: string
   tests: ProblemTestCase[]
 }

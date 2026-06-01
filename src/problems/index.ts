@@ -72,12 +72,11 @@ const metadataModules = import.meta.glob<Metadata>('./*/metadata.json', {
   import: 'default',
 })
 // problem.md / solution.md は markdown-html プラグインがビルド時に HTML 文字列へ変換する。
+// eager にせず遅延ロード(問題押下時に dynamic import)してメインチャンクから切り離す。
 const problemModules = import.meta.glob<string>('./*/problem.md', {
-  eager: true,
   import: 'default',
 })
 const solutionModules = import.meta.glob<string>('./*/solution.md', {
-  eager: true,
   import: 'default',
 })
 const templateModules = import.meta.glob<string>('./*/template.js', {
@@ -97,6 +96,19 @@ function pickRaw(modules: Record<string, string>, id: string, file: string): str
     throw new Error(`問題 "${id}" の ${file} が見つかりません`)
   }
   return value
+}
+
+/** 遅延ロードする問題ファイル (problem.md / solution.md) のローダ関数を取り出す。 */
+function pickLoader(
+  modules: Record<string, () => Promise<string>>,
+  id: string,
+  file: string,
+): () => Promise<string> {
+  const loader = modules[`./${id}/${file}`]
+  if (loader === undefined) {
+    throw new Error(`問題 "${id}" の ${file} が見つかりません`)
+  }
+  return loader
 }
 
 function testsFor(id: string): ProblemTestCase[] {
@@ -120,8 +132,8 @@ function buildProblem({ id, category, order }: ProblemPlacement): Problem {
     title: metadata.title,
     category,
     order,
-    problemHtml: pickRaw(problemModules, id, 'problem.md'),
-    solutionHtml: pickRaw(solutionModules, id, 'solution.md'),
+    loadProblemHtml: pickLoader(problemModules, id, 'problem.md'),
+    loadSolutionHtml: pickLoader(solutionModules, id, 'solution.md'),
     template: pickRaw(templateModules, id, 'template.js'),
     tests: testsFor(id),
   }
