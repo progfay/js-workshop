@@ -11,8 +11,10 @@ export interface Problem {
   /** category / order はローダ側で指定する (SPEC 4.2 / 8) */
   category: string
   order: number
-  problemMarkdown: string
-  solutionMarkdown: string
+  /** ビルド時に markdown からレンダリング済みの HTML (problem.md) */
+  problemHtml: string
+  /** ビルド時に markdown からレンダリング済みの HTML (solution.md) */
+  solutionHtml: string
   template: string
   tests: ProblemTestCase[]
 }

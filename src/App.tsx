@@ -182,13 +182,13 @@ export default function App() {
 
         {/* 中央: 問題説明 + 正解時の解説 */}
         <section className="description" ref={descRef} style={{ width: descWidth }}>
-          <Markdown theme={theme}>{current.problemMarkdown}</Markdown>
+          <Markdown html={current.problemHtml} />
 
           {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}
           {solved && (
             <section className="solution">
               <h2>解説</h2>
-              <Markdown theme={theme}>{current.solutionMarkdown}</Markdown>
+              <Markdown html={current.solutionHtml} />
             </section>
           )}
         </section>

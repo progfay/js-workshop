@@ -15,16 +15,20 @@
     "prettier": "3.8.3",
     "quickjs-emscripten": "0.32.0",
     "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "react-markdown": "10.1.0",
-    "remark-gfm": "4.0.1"
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@shikijs/rehype": "4.1.0",
     "@types/node": "25.9.1",
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
+    "rehype-stringify": "10.0.1",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.2",
     "typescript": "6.0.3",
+    "unified": "11.0.5",
     "vite": "8.0.14"
   }
 }

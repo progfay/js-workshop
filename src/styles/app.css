@@ -471,10 +471,21 @@ details[open] > .case-summary::before {
 }
 
 .markdown pre {
-  background: var(--code-bg);
   padding: 0.75rem;
   border-radius: 6px;
   overflow-x: auto;
+}
+
+/* Shiki 以外の素の pre (あれば) は従来の背景を使う */
+.markdown pre:not(.shiki) {
+  background: var(--code-bg);
+}
+
+/* Shiki dual-theme: 既定はライト、data-theme='dark' でダーク変数へ切替 */
+:root[data-theme='dark'] .markdown .shiki,
+:root[data-theme='dark'] .markdown .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }
 
 .markdown code {

@@ -23,14 +23,13 @@ const metadataModules = import.meta.glob<Metadata>('./*/metadata.json', {
   eager: true,
   import: 'default',
 })
+// problem.md / solution.md は markdown-html プラグインがビルド時に HTML 文字列へ変換する。
 const problemModules = import.meta.glob<string>('./*/problem.md', {
   eager: true,
-  query: '?raw',
   import: 'default',
 })
 const solutionModules = import.meta.glob<string>('./*/solution.md', {
   eager: true,
-  query: '?raw',
   import: 'default',
 })
 const templateModules = import.meta.glob<string>('./*/template.js', {
@@ -73,8 +72,8 @@ function buildProblem({ id, category, order }: ProblemPlacement): Problem {
     title: metadata.title,
     category,
     order,
-    problemMarkdown: pickRaw(problemModules, id, 'problem.md'),
-    solutionMarkdown: pickRaw(solutionModules, id, 'solution.md'),
+    problemHtml: pickRaw(problemModules, id, 'problem.md'),
+    solutionHtml: pickRaw(solutionModules, id, 'solution.md'),
     template: pickRaw(templateModules, id, 'template.js'),
     tests: testsFor(id),
   }
