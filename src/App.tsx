@@ -245,7 +245,8 @@ export default function App() {
           </div>
 
           <div className="editor-wrap">
-            <Editor value={code} onChange={handleCodeChange} theme={theme} />
+            {/* 問題ごとに key を変え、切り替え時にエディタを再マウントして undo 履歴をリセットする。 */}
+            <Editor key={current.id} value={code} onChange={handleCodeChange} theme={theme} />
           </div>
 
           {drawerOpen && (
