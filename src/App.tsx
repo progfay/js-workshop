@@ -206,7 +206,7 @@ export default function App() {
         <section className="editor-pane">
           <div className="editor-toolbar">
             <button className="run" onClick={run} disabled={running}>
-              {running ? '実行中…' : '▶ 実行'}
+              ▶ 実行
             </button>
             <button
               className="format"
