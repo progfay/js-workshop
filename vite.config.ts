@@ -38,9 +38,9 @@ function markdownHtml(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [markdownHtml(), react()],
-  // quickjs-emscripten ships a WASM variant; let Vite handle it without
-  // pre-bundling so the embedded wasm loads correctly in dev.
+  // QuickJS の変換 (release-sync) は WASM を伴う。pre-bundle すると dev で
+  // wasm が正しく読み込めないため除外する。
   optimizeDeps: {
-    exclude: ['quickjs-emscripten'],
+    exclude: ['quickjs-emscripten-core', '@jitl/quickjs-wasmfile-release-sync'],
   },
 })

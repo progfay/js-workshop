@@ -1,10 +1,13 @@
 import {
-  getQuickJS,
+  newQuickJSWASMModuleFromVariant,
   shouldInterruptAfterDeadline,
   type QuickJSContext,
   type QuickJSHandle,
   type QuickJSWASMModule,
-} from 'quickjs-emscripten'
+} from 'quickjs-emscripten-core'
+// 単一バリアント (release + sync) だけを依存することで、wasm を1つに絞る。
+// barrel の 'quickjs-emscripten' は4バリアントを静的参照し全 wasm を同梱してしまう。
+import releaseSyncVariant from '@jitl/quickjs-wasmfile-release-sync'
 import type { ProblemTestCase } from '../problems/types'
 
 export interface CaseResult {
@@ -32,7 +35,7 @@ const MEMORY_LIMIT_BYTES = 128 * 1024 * 1024
 
 let modulePromise: Promise<QuickJSWASMModule> | null = null
 function loadQuickJS(): Promise<QuickJSWASMModule> {
-  if (!modulePromise) modulePromise = getQuickJS()
+  if (!modulePromise) modulePromise = newQuickJSWASMModuleFromVariant(releaseSyncVariant)
   return modulePromise
 }
 
