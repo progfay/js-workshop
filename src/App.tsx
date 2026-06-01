@@ -237,11 +237,6 @@ export default function App() {
               整形
             </button>
             {formatError && <span className="format-error">{formatError}</span>}
-            {result && (
-              <button className="toggle-drawer" onClick={() => setDrawerOpen((open) => !open)}>
-                {drawerOpen ? '結果を隠す' : '結果を表示'}
-              </button>
-            )}
           </div>
 
           <div className="editor-wrap">

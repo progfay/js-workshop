@@ -197,15 +197,9 @@ body {
   cursor: default;
 }
 
-.editor-toolbar .reset,
-.editor-toolbar .format,
-.editor-toolbar .toggle-drawer {
+.editor-toolbar .format {
   background: var(--bg);
   color: var(--text);
-}
-
-.editor-toolbar .toggle-drawer {
-  margin-left: auto;
 }
 
 .format-error {
