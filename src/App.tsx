@@ -66,11 +66,12 @@ export default function App() {
   // キーボードショートカット(⌘/Ctrl+S)から最新の整形処理を呼ぶための ref。
   const formatRef = useRef<() => void>(() => {})
 
-  // 問題を開いたとき: 保存済みコードがあれば復元、なければ template (SPEC 9)。
+  // 問題を開いたとき: 保存済みコードがあれば復元、空なら template (SPEC 9)。
   // 前回の採点結果もクリアする。
   useEffect(() => {
     if (!current) return
-    setCode(loadCode(current.id) ?? current.template)
+    const saved = loadCode(current.id)
+    setCode(saved && saved.trim() !== '' ? saved : current.template)
     setResult(null)
     setFormatError(null)
     setDrawerOpen(false)
@@ -147,13 +148,6 @@ export default function App() {
     setResult(graded)
     setRunning(false)
     setProgress(setSolved(current.id, graded.solved))
-  }
-
-  const reset = () => {
-    setCode(current.template)
-    saveCode(current.id, current.template)
-    setResult(null)
-    setDrawerOpen(false)
   }
 
   // Prettier で整形。構文エラー時はメッセージを出す。
@@ -241,9 +235,6 @@ export default function App() {
               title="⌘/Ctrl+S"
             >
               整形
-            </button>
-            <button className="reset" onClick={reset} disabled={running}>
-              リセット
             </button>
             {formatError && <span className="format-error">{formatError}</span>}
             {result && (
