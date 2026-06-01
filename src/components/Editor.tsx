@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { ThemeName } from '../hooks/useTheme'
+import { Spinner } from './Spinner'
 
 interface Props {
   value: string
@@ -13,7 +14,7 @@ const EditorImpl = lazy(() => import('./EditorImpl'))
 /** JavaScript モードのコードエディタ。light/dark に対応 (SPEC 3)。 */
 export function Editor(props: Props) {
   return (
-    <Suspense fallback={<div className="editor-loading">エディタを読み込み中…</div>}>
+    <Suspense fallback={<Spinner label="エディタを読み込み中…" />}>
       <EditorImpl {...props} />
     </Suspense>
   )
