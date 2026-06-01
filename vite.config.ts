@@ -43,4 +43,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['quickjs-emscripten-core', '@jitl/quickjs-wasmfile-release-sync'],
   },
+  build: {
+    // 500kB 超の唯一のチャンクは CodeMirror (約507kB) で、必要時に読み込む
+    // 意図的な async ベンダチャンク。エントリを塞がないため閾値を上げて警告を抑制する。
+    chunkSizeWarningLimit: 600,
+  },
 })
