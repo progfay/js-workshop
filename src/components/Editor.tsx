@@ -1,5 +1,4 @@
-import CodeMirror from '@uiw/react-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
+import { lazy, Suspense } from 'react'
 import type { ThemeName } from '../hooks/useTheme'
 
 interface Props {
@@ -8,16 +7,14 @@ interface Props {
   theme: ThemeName
 }
 
+// CodeMirror (大きい) を初期バンドルから外し、必要時に dynamic import する。
+const EditorImpl = lazy(() => import('./EditorImpl'))
+
 /** JavaScript モードのコードエディタ。light/dark に対応 (SPEC 3)。 */
-export function Editor({ value, onChange, theme }: Props) {
+export function Editor(props: Props) {
   return (
-    <CodeMirror
-      value={value}
-      theme={theme}
-      height="100%"
-      extensions={[javascript()]}
-      onChange={onChange}
-      basicSetup={{ tabSize: 2 }}
-    />
+    <Suspense fallback={<div className="editor-loading">エディタを読み込み中…</div>}>
+      <EditorImpl {...props} />
+    </Suspense>
   )
 }
