@@ -3,14 +3,14 @@
  * 初期バンドルを膨らませないよう、Prettier 本体とプラグインは動的 import する。
  */
 export async function formatJs(code: string): Promise<string> {
-  const [prettier, babel, estree] = await Promise.all([
+  const [prettier, meriyah, estree] = await Promise.all([
     import('prettier/standalone'),
-    import('prettier/plugins/babel'),
+    import('prettier/plugins/meriyah'),
     import('prettier/plugins/estree'),
   ])
   return prettier.format(code, {
-    parser: 'babel',
-    plugins: [babel, estree],
+    parser: 'meriyah',
+    plugins: [meriyah, estree],
     tabWidth: 2,
   })
 }
