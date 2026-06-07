@@ -37,6 +37,9 @@ function markdownHtml(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // GitHub Pages のプロジェクトページ (https://progfay.github.io/js-workshop/)
+  // 配下で配信するためのベースパス。
+  base: '/js-workshop/',
   plugins: [markdownHtml(), react()],
   // QuickJS の変換 (release-sync) は WASM を伴う。pre-bundle すると dev で
   // wasm が正しく読み込めないため除外する。
