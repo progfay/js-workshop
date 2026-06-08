@@ -484,6 +484,23 @@ details[open] > .case-summary::before {
   padding-top: 0.5rem;
 }
 
+.next-problem {
+  display: block;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.next-problem:hover {
+  opacity: 0.9;
+}
+
 /* 読み取り専用コード(Markdown内のコードブロック / テストケース) */
 .code-block {
   margin: 0.6rem 0;

@@ -128,6 +128,11 @@ export default function App() {
   const solved = !!current && progress[current.id] === true
   const problemHtml = useAsyncHtml(current?.loadProblemHtml)
   const solutionHtml = useAsyncHtml(solved ? current?.loadSolutionHtml : undefined)
+  // 次の問題(problems は order 順に並んでいる)。最後の問題なら undefined。
+  const nextProblem = useMemo<Problem | undefined>(() => {
+    const index = problems.findIndex((problem) => problem.id === currentId)
+    return index >= 0 ? problems[index + 1] : undefined
+  }, [currentId])
 
   if (!current) {
     return <p className="empty">問題がありません。</p>
@@ -227,6 +232,17 @@ export default function App() {
             <section className="solution">
               <h2>解説</h2>
               <Markdown html={solutionHtml} />
+              {nextProblem && (
+                <button
+                  className="next-problem"
+                  onClick={() => {
+                    setCurrentId(nextProblem.id)
+                    setNavOpen(false)
+                  }}
+                >
+                  次の問題へ
+                </button>
+              )}
             </section>
           )}
         </section>
