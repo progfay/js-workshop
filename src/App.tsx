@@ -7,7 +7,15 @@ import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
 import { ResizableDrawer } from './components/ResizableDrawer'
 import { useSystemTheme } from './hooks/useTheme'
-import { loadCode, loadProgress, saveCode, setSolved, type Progress } from './storage/storage'
+import {
+  loadCode,
+  loadProgress,
+  loadSplitRatio,
+  saveCode,
+  saveSplitRatio,
+  setSolved,
+  type Progress,
+} from './storage/storage'
 import { formatJs } from './lib/format'
 import './styles/app.css'
 
@@ -61,8 +69,9 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   // サイドバーはハンバーガーメニューに隠す(全画面幅共通)。デフォルト閉。
   const [navOpen, setNavOpen] = useState(false)
-  // 説明(中央)とエディタ(右)の幅比率。中央の縦線ドラッグで調整する。
-  const [descWidth, setDescWidth] = useState(420)
+  // 説明(中央)とエディタ(右)の幅比率(0..1, 説明側の割合)。中央の縦線ドラッグで調整する。
+  // 割合で持つため、ウィンドウの resize 時は flexbox が自動で比率を維持し、reload 時は localStorage から復元する。
+  const [descRatio, setDescRatio] = useState<number>(loadSplitRatio)
   const descRef = useRef<HTMLElement>(null)
   const colDragging = useRef(false)
   // キーボードショートカット(⌘/Ctrl+S)から最新の整形処理を呼ぶための ref。
@@ -99,16 +108,24 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  // 中央の縦線ドラッグで説明カラムの幅を変える(エディタは残りを占有)。
+  // 中央の縦線ドラッグで説明とエディタの幅の割合を変える。px ではなく割合で保持する。
   useEffect(() => {
+    // 縦線(8px)とカラム最小幅(説明 240 / エディタ 320)を割合に換算してクランプする。
+    const RESIZER = 8
+    const MIN_DESC = 240
+    const MIN_EDITOR = 320
     const onMove = (event: PointerEvent) => {
-      const el = descRef.current
-      if (!colDragging.current || !el) return
-      const left = el.getBoundingClientRect().left
-      const body = el.parentElement
-      const max = body ? body.getBoundingClientRect().right - 320 - left : 1200
-      const next = Math.min(Math.max(event.clientX - left, 240), Math.max(240, max))
-      setDescWidth(next)
+      const body = descRef.current?.parentElement
+      if (!colDragging.current || !body) return
+      const rect = body.getBoundingClientRect()
+      const available = rect.width - RESIZER
+      if (available <= 0) return
+      const minRatio = MIN_DESC / available
+      const maxRatio = 1 - MIN_EDITOR / available
+      const raw = (event.clientX - rect.left) / available
+      const next = Math.min(Math.max(raw, minRatio), Math.max(minRatio, maxRatio))
+      setDescRatio(next)
+      saveSplitRatio(next)
     }
     const stop = () => {
       if (!colDragging.current) return
@@ -192,7 +209,7 @@ export default function App() {
         <h1>JavaScript 演習</h1>
       </header>
 
-      <div className="app-body">
+      <div className="app-body" style={{ '--desc-ratio': descRatio } as React.CSSProperties}>
         {/* 左: 問題ナビゲーション(ハンバーガーで開閉するオフキャンバスのドロワー) */}
         <aside className={navOpen ? 'sidebar is-open' : 'sidebar'}>
           {categories.map((category) => (
@@ -224,7 +241,7 @@ export default function App() {
         )}
 
         {/* 中央: 問題説明 + 正解時の解説 */}
-        <section className="description" ref={descRef} style={{ width: descWidth }}>
+        <section className="description" ref={descRef}>
           <Markdown html={problemHtml} />
 
           {/* 全テスト通過(正解)時のみ解説を表示する (SPEC 7) */}

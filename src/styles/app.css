@@ -162,9 +162,10 @@ body {
   color: var(--accent-text);
 }
 
-/* 中央: 問題説明 (幅は inline style、ドラッグで可変) */
+/* 中央: 問題説明。幅は --desc-ratio(説明側の割合)で配分し、ドラッグで可変。 */
 .description {
-  flex-shrink: 0;
+  flex: var(--desc-ratio) 1 0;
+  min-width: 240px;
   overflow-y: auto;
   padding: 1.25rem 1.5rem;
 }
@@ -197,10 +198,10 @@ body {
   background: var(--text-muted);
 }
 
-/* 右: ツールバー + エディタ + ドロワー */
+/* 右: ツールバー + エディタ + ドロワー。残りの割合 (1 - --desc-ratio) を占有する。 */
 .editor-pane {
-  flex: 1;
-  min-width: 0;
+  flex: calc(1 - var(--desc-ratio)) 1 0;
+  min-width: 320px;
   display: flex;
   flex-direction: column;
 }
@@ -613,10 +614,11 @@ details[open] > .case-summary::before {
     overflow-y: auto;
   }
 
-  /* inline style の幅指定を打ち消し、横幅いっぱいで上に置く */
+  /* 縦積みでは割合での幅配分はやめ、横幅いっぱいで上に置く */
   .description {
-    width: auto !important;
-    flex-shrink: 0;
+    flex: none;
+    min-width: 0;
+    width: auto;
     overflow-y: visible;
   }
 
@@ -628,6 +630,7 @@ details[open] > .case-summary::before {
   /* エディタは下に置く。CodeMirror が内部スクロールできるよう高さを与える */
   .editor-pane {
     flex: none;
+    min-width: 0;
     height: 70vh;
     border-top: 1px solid var(--border);
   }

@@ -3,6 +3,7 @@
 
 const CODE_PREFIX = 'jsw:code:'
 const PROGRESS_KEY = 'jsw:progress'
+const SPLIT_KEY = 'jsw:split'
 
 export type Progress = Record<string, boolean>
 
@@ -19,6 +20,27 @@ export function loadCode(problemId: string): string | null {
 export function saveCode(problemId: string, code: string): void {
   try {
     localStorage.setItem(CODE_PREFIX + problemId, code)
+  } catch {
+    /* 保存できなくても処理は続行する */
+  }
+}
+
+/** 説明カラムが占める幅の割合 (0..1)。未保存ならデフォルト 0.5 (50/50)。 */
+export function loadSplitRatio(): number {
+  try {
+    const raw = localStorage.getItem(SPLIT_KEY)
+    if (raw == null) return 0.5
+    const value = Number(raw)
+    return Number.isFinite(value) && value > 0 && value < 1 ? value : 0.5
+  } catch {
+    return 0.5
+  }
+}
+
+/** 説明カラムが占める幅の割合 (0..1) を保存する。 */
+export function saveSplitRatio(ratio: number): void {
+  try {
+    localStorage.setItem(SPLIT_KEY, String(ratio))
   } catch {
     /* 保存できなくても処理は続行する */
   }
