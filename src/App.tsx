@@ -59,6 +59,8 @@ export default function App() {
   const [formatError, setFormatError] = useState<string | null>(null)
   // 実行結果ドロワーはデフォルト非表示。実行時に開く。
   const [drawerOpen, setDrawerOpen] = useState(false)
+  // モバイルではサイドバーをハンバーガーメニューに隠す。デフォルト閉。
+  const [navOpen, setNavOpen] = useState(false)
   // 説明(中央)とエディタ(右)の幅比率。中央の縦線ドラッグで調整する。
   const [descWidth, setDescWidth] = useState(420)
   const descRef = useRef<HTMLElement>(null)
@@ -174,12 +176,20 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <button
+          className="nav-toggle"
+          onClick={() => setNavOpen((open) => !open)}
+          aria-label="問題一覧の開閉"
+          aria-expanded={navOpen}
+        >
+          ☰
+        </button>
         <h1>JavaScript 演習</h1>
       </header>
 
       <div className="app-body">
-        {/* 左: 問題ナビゲーション */}
-        <aside className="sidebar">
+        {/* 左: 問題ナビゲーション(モバイルではハンバーガーで開閉) */}
+        <aside className={navOpen ? 'sidebar is-open' : 'sidebar'}>
           {categories.map((category) => (
             <div key={category.name} className="cat">
               <h2 className="cat-name">{category.name}</h2>
@@ -188,7 +198,10 @@ export default function App() {
                   <li key={problem.id}>
                     <button
                       className={problem.id === currentId ? 'prob is-current' : 'prob'}
-                      onClick={() => setCurrentId(problem.id)}
+                      onClick={() => {
+                        setCurrentId(problem.id)
+                        setNavOpen(false)
+                      }}
                     >
                       <span className="prob-status">{progress[problem.id] ? '✓' : '・'}</span>
                       <span className="prob-title">{problem.title}</span>
@@ -199,6 +212,11 @@ export default function App() {
             </div>
           ))}
         </aside>
+
+        {/* モバイルでサイドバーを開いたときの背景。タップで閉じる */}
+        {navOpen && (
+          <div className="nav-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
+        )}
 
         {/* 中央: 問題説明 + 正解時の解説 */}
         <section className="description" ref={descRef} style={{ width: descWidth }}>

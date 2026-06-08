@@ -56,6 +56,22 @@ body {
   margin: 0;
 }
 
+/* ハンバーガーボタンはモバイルのみ表示 */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  margin-right: 0.6rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 /* 3カラム: ナビ | 説明 | エディタ列 (説明とエディタの境界はドラッグ可能) */
 .app-body {
   flex: 1;
@@ -549,4 +565,66 @@ details[open] > .case-summary::before {
 .markdown td {
   border: 1px solid var(--border);
   padding: 0.3rem 0.6rem;
+}
+
+/* Mobile: 説明とエディタを上下に並べ、サイドバーはハンバーガーで開閉する */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .app-header {
+    justify-content: flex-start;
+  }
+
+  .app-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  /* サイドバーは画面左から滑り込むオフキャンバスのドロワー */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+    width: 80%;
+    max-width: 300px;
+    border-right: 1px solid var(--border);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  /* ドロワーの背景。タップで閉じる */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  /* inline style の幅指定を打ち消し、横幅いっぱいで上に置く */
+  .description {
+    width: auto !important;
+    flex-shrink: 0;
+    overflow-y: visible;
+  }
+
+  /* 縦積みでは左右ドラッグの縦線は不要 */
+  .col-resizer {
+    display: none;
+  }
+
+  /* エディタは下に置く。CodeMirror が内部スクロールできるよう高さを与える */
+  .editor-pane {
+    flex: none;
+    height: 70vh;
+    border-top: 1px solid var(--border);
+  }
 }
