@@ -59,7 +59,7 @@ export default function App() {
   const [formatError, setFormatError] = useState<string | null>(null)
   // 実行結果ドロワーはデフォルト非表示。実行時に開く。
   const [drawerOpen, setDrawerOpen] = useState(false)
-  // モバイルではサイドバーをハンバーガーメニューに隠す。デフォルト閉。
+  // サイドバーはハンバーガーメニューに隠す(全画面幅共通)。デフォルト閉。
   const [navOpen, setNavOpen] = useState(false)
   // 説明(中央)とエディタ(右)の幅比率。中央の縦線ドラッグで調整する。
   const [descWidth, setDescWidth] = useState(420)
@@ -188,7 +188,7 @@ export default function App() {
       </header>
 
       <div className="app-body">
-        {/* 左: 問題ナビゲーション(モバイルではハンバーガーで開閉) */}
+        {/* 左: 問題ナビゲーション(ハンバーガーで開閉するオフキャンバスのドロワー) */}
         <aside className={navOpen ? 'sidebar is-open' : 'sidebar'}>
           {categories.map((category) => (
             <div key={category.name} className="cat">
@@ -213,7 +213,7 @@ export default function App() {
           ))}
         </aside>
 
-        {/* モバイルでサイドバーを開いたときの背景。タップで閉じる */}
+        {/* サイドバーを開いたときの背景。クリックで閉じる */}
         {navOpen && (
           <div className="nav-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
         )}

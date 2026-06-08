@@ -44,7 +44,7 @@ body {
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0.6rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -56,9 +56,9 @@ body {
   margin: 0;
 }
 
-/* ハンバーガーボタンはモバイルのみ表示 */
+/* ハンバーガーボタンは常時表示し、サイドバーをオフキャンバスに隠す */
 .nav-toggle {
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
@@ -72,7 +72,8 @@ body {
   cursor: pointer;
 }
 
-/* 3カラム: ナビ | 説明 | エディタ列 (説明とエディタの境界はドラッグ可能) */
+/* 2カラム: 説明 | エディタ列 (説明とエディタの境界はドラッグ可能)。
+   サイドバーはオフキャンバスのドロワーなのでフローには含めない。 */
 .app-body {
   flex: 1;
   display: flex;
@@ -83,14 +84,35 @@ body {
   min-height: 0;
 }
 
-/* 左: Sidebar */
+/* 左: Sidebar。画面左から滑り込むオフキャンバスのドロワー(全画面幅で共通) */
 .sidebar {
-  width: 220px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 30;
+  width: 80%;
+  max-width: 300px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   background: var(--bg-elevated);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
   overflow-y: auto;
   padding: 0.5rem;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+}
+
+.sidebar.is-open {
+  transform: translateX(0);
+}
+
+/* ドロワーの背景。タップ/クリックで閉じる */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .cat-name {
@@ -567,46 +589,11 @@ details[open] > .case-summary::before {
   padding: 0.3rem 0.6rem;
 }
 
-/* Mobile: 説明とエディタを上下に並べ、サイドバーはハンバーガーで開閉する */
+/* Mobile: 説明とエディタを上下に並べる(サイドバーのドロワー化は全幅共通) */
 @media (max-width: 768px) {
-  .nav-toggle {
-    display: inline-flex;
-  }
-
-  .app-header {
-    justify-content: flex-start;
-  }
-
   .app-body {
     flex-direction: column;
     overflow-y: auto;
-  }
-
-  /* サイドバーは画面左から滑り込むオフキャンバスのドロワー */
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 30;
-    width: 80%;
-    max-width: 300px;
-    border-right: 1px solid var(--border);
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-  }
-
-  .sidebar.is-open {
-    transform: translateX(0);
-  }
-
-  /* ドロワーの背景。タップで閉じる */
-  .nav-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    background: rgba(0, 0, 0, 0.4);
   }
 
   /* inline style の幅指定を打ち消し、横幅いっぱいで上に置く */
