@@ -204,7 +204,20 @@ export default function App() {
           aria-label="問題一覧の開閉"
           aria-expanded={navOpen}
         >
-          ☰
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <line x1="3" y1="5" x2="17" y2="5" />
+            <line x1="3" y1="10" x2="17" y2="10" />
+            <line x1="3" y1="15" x2="17" y2="15" />
+          </svg>
         </button>
         <h1>JavaScript 演習</h1>
       </header>
