@@ -10,6 +10,14 @@ import {
 import releaseSyncVariant from '@jitl/quickjs-wasmfile-release-sync'
 import type { ProblemTestCase } from '../problems/types'
 
+/** console のどのメソッドから出力されたか (表示で log と error 等を区別する)。 */
+export type LogLevel = 'log' | 'info' | 'debug' | 'warn' | 'error'
+
+export interface LogEntry {
+  level: LogLevel
+  text: string
+}
+
 export interface CaseResult {
   name: string
   passed: boolean
@@ -19,8 +27,8 @@ export interface CaseResult {
   errorMessage?: string
   /** タイムアウト (無限ループ等) で打ち切られたか */
   timedOut?: boolean
-  /** 受講者コードの console.log 出力 (デバッグ用, SPEC 5.3) */
-  logs: string[]
+  /** 受講者コードの console 出力 (デバッグ用, SPEC 5.3)。level でメソッドを区別する。 */
+  logs: LogEntry[]
 }
 
 export interface GradeResult {
@@ -68,18 +76,20 @@ function formatError(dumped: unknown): string {
   return formatValue(dumped)
 }
 
-/** ゲスト側に console.log を用意し、出力を logs に蓄積する (SPEC 5.3)。 */
-function installConsole(vm: QuickJSContext, logs: string[]): void {
-  const logFn = vm.newFunction('log', (...args: QuickJSHandle[]) => {
-    logs.push(args.map((arg) => formatValue(vm.dump(arg))).join(' '))
-  })
+/** ゲスト側に console を用意し、出力を logs に蓄積する (SPEC 5.3)。 */
+function installConsole(vm: QuickJSContext, logs: LogEntry[]): void {
   const consoleObj = vm.newObject()
-  vm.setProp(consoleObj, 'log', logFn)
-  // console.error も log と同様に扱う (一部の問題でデバッグ出力に使われる)。
-  vm.setProp(consoleObj, 'error', logFn)
+  const levels: LogLevel[] = ['log', 'info', 'debug', 'warn', 'error']
+  // メソッドごとに level を付けて蓄積し、表示時に log / error 等を区別できるようにする。
+  for (const level of levels) {
+    const fn = vm.newFunction(level, (...args: QuickJSHandle[]) => {
+      logs.push({ level, text: args.map((arg) => formatValue(vm.dump(arg))).join(' ') })
+    })
+    vm.setProp(consoleObj, level, fn)
+    fn.dispose()
+  }
   vm.setProp(vm.global, 'console', consoleObj)
   consoleObj.dispose()
-  logFn.dispose()
 }
 
 interface VirtualTimer {
@@ -148,7 +158,7 @@ function runCase(
   const deadline = Date.now() + TIMEOUT_MS
   runtime.setInterruptHandler(shouldInterruptAfterDeadline(deadline))
   const vm = runtime.newContext()
-  const logs: string[] = []
+  const logs: LogEntry[] = []
   const timers: VirtualTimer[] = []
   installConsole(vm, logs)
   installSetTimeout(vm, timers)

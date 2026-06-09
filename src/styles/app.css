@@ -12,6 +12,8 @@
   --fail: #cf222e;
   --fail-bg: #fbe9e9;
   --code-bg: #f0f2f5;
+  --log-warn: #9a6700;
+  --log-error: #cf222e;
 }
 
 :root[data-theme='dark'] {
@@ -28,6 +30,8 @@
   --fail: #ff7b72;
   --fail-bg: #2c1414;
   --code-bg: #11151b;
+  --log-warn: #e3b341;
+  --log-error: #ff7b72;
 }
 
 body {
@@ -477,6 +481,30 @@ details[open] > .case-summary::before {
   color: var(--text-muted);
   font-size: 0.82rem;
   margin-top: 0.4rem;
+}
+
+/* console のメソッドごとに行を色分けし、log / error 等を区別する。 */
+.log-line {
+  display: block;
+}
+
+.log-level {
+  display: inline-block;
+  min-width: 3.5em;
+  margin-right: 0.6rem;
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  user-select: none;
+}
+
+.log-warn {
+  color: var(--log-warn, #b8860b);
+}
+
+.log-error {
+  color: var(--log-error, #d33);
 }
 
 .solution {

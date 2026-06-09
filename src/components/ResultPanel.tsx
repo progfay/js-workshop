@@ -48,8 +48,16 @@ export function ResultPanel({ result, running, theme }: Props) {
 
               {c.logs.length > 0 && (
                 <details className="case-logs">
-                  <summary>console.log ({c.logs.length})</summary>
-                  <pre>{c.logs.join('\n')}</pre>
+                  <summary>console ({c.logs.length})</summary>
+                  <pre>
+                    {c.logs.map((log, i) => (
+                      <span key={i} className={`log-line log-${log.level}`}>
+                        <span className="log-level">{log.level}</span>
+                        {log.text}
+                        {'\n'}
+                      </span>
+                    ))}
+                  </pre>
                 </details>
               )}
             </details>
