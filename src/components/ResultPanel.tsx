@@ -30,9 +30,10 @@ export function ResultPanel({ result, running, theme }: Props) {
       <ul className="case-list">
         {result.cases.map((c) => (
           // PASS / FAIL とも開閉式。summary(左に三角)を押すとテストコードを開閉。
-          // FAIL は summary 内に Error message も表示する(赤い領域がクリック対象)。
+          // FAIL は summary 内に Error message も表示し(赤い領域がクリック対象)、
+          // 最初からアコーディオンを開いた状態で表示する。
           <li key={c.name} className={c.passed ? 'is-pass' : 'is-fail'}>
-            <details>
+            <details open={!c.passed}>
               <summary className="case-summary">
                 <span className="case-summary-body">
                   <span className="case-head">
