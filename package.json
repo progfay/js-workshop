@@ -37,6 +37,6 @@
     "remark-rehype": "11.1.2",
     "typescript": "6.0.3",
     "unified": "11.0.5",
-    "vite": "8.0.14"
+    "vite": "8.0.16"
   }
 }
