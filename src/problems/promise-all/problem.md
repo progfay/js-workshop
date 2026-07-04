@@ -17,3 +17,6 @@ const results = await Promise.all([p1, p2, p3]);
 ```js
 await squareAll([1, 2, 3]); // -> [1, 4, 9]
 ```
+
+> `fetchSquare` は 1000ms 待つ作りですが、このアプリの採点は実際の時間を
+> 待たずに進むので、何要素あっても一瞬で採点されます。
