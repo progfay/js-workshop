@@ -167,6 +167,8 @@ function runCase(
   let passed = true
   let errorMessage: string | undefined
   let timedOut = false
+  /** マイクロタスクも仮想タイマーも尽きたのに Promise が pending のまま (resolve 呼び忘れ等) */
+  let stalled = false
 
   const interruptMessage = `実行が ${TIMEOUT_MS}ms を超えたため中断しました(無限ループの可能性があります)`
 
@@ -221,7 +223,11 @@ function runCase(
     if (jobs.value > 0) continue
 
     // マイクロタスクが尽きた: 最も早い仮想タイマーを1つ発火する。
-    if (timers.length === 0) break // これ以上進めない (pending のまま)。
+    if (timers.length === 0) {
+      // これ以上進めない (pending のまま)。タイムアウトではなく「解決されない Promise」。
+      stalled = true
+      break
+    }
     timers.sort((a, b) => a.delay - b.delay || a.seq - b.seq)
     const timer = timers.shift() as VirtualTimer
     const callRes = vm.callFunction(timer.cb, vm.undefined)
@@ -245,6 +251,12 @@ function runCase(
       } else {
         errorMessage = message
       }
+    } else if (stalled) {
+      // 実行できる処理が無くなったのに pending のまま。resolve やコールバックの
+      // 呼び忘れという初学者の典型ミスなので、無限ループ疑いとは区別して伝える。
+      passed = false
+      errorMessage =
+        'テストが完了しませんでした (Promise が解決されないままです。resolve やコールバックを呼び忘れていませんか?)'
     } else {
       // まだ pending → タイムアウト扱い。
       passed = false

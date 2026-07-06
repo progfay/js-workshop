@@ -16,3 +16,7 @@ function primeHexes(limit) {
 
 `[...Array(limit).keys()]` で `0..limit-1` の配列を作り、`filter` で素数に絞り、
 `map` で 16 進数文字列へ変換しています。
+
+このような複数ステップの処理は、一気に書かずに
+`console.log(numbers.filter(isPrime))` のように**途中結果を出力しながら**
+段階的に組み立てるのがコツです。

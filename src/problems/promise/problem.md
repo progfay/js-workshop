@@ -19,3 +19,7 @@ const value = await somePromise; // resolve された値
 await getData("greeting"); // -> "Hello"
 await getData("foo"); // -> reject (Error: unknown key: foo)
 ```
+
+`resolve` を呼び忘れると Promise は永遠に完了しません。
+そのときテストには「Promise が解決されないままです」と表示されるので、
+このメッセージを見たら `resolve` / `reject` の呼び出しを確認しましょう。
