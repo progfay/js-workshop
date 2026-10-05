@@ -21,10 +21,11 @@
 | ビルドツール | Vite |
 | UIフレームワーク | React |
 | コードエディタ | CodeMirror |
-| コード実行環境 | quickjs-emscripten(QuickJSをWASMで実行) |
+| コード実行環境 | Web Worker(sandbox 属性付き iframe 内で起動) |
 | テーマ | ライト / ダーク両対応 |
 
-- コード実行はQuickJS(WASM)で隔離して行い、**無限ループ対策のタイムアウト**を設ける。
+- コード実行は sandbox iframe(opaque origin・CSP で通信遮断)内の Web Worker で隔離して行い、**無限ループ対策のタイムアウト**を設ける(超過したら Worker を terminate する)。
+- `setTimeout` 等のタイマーと `Date.now` は仮想時間で動かし、実時間を待たずに決定論的に採点する。
 - 問題ファイルはビルド時に同梱(コードリポジトリに配置)し、`import.meta.glob` 等で取り込む。
 
 ## 4. 問題の構成

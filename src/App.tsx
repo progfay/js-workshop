@@ -166,8 +166,7 @@ export default function App() {
     setRunning(true)
     setDrawerOpen(true)
     setResult(null)
-    // 同期実行で固まる前に「実行中…」を描画させる。
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    // 採点は sandbox の Worker で動くので、UI は固まらない。
     const graded = await grade(code, current.tests)
     setResult(graded)
     setRunning(false)
