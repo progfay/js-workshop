@@ -25,12 +25,11 @@ const STALL_GRACE_MS = 200
 
 /**
  * タイマーが止まらずに発火し続けている (setTimeout の再帰呼び出し・setInterval の止め忘れ)
- * と判定する上限。発火回数と仮想経過時間のどちらかを超えたら打ち切る。
- * 発火1回ごとに本物のマクロタスクを1往復するため、発火回数は低速な端末でも
- * タイムアウト (1秒) より十分早く上限に届く値にしている。
+ * と判定する発火回数の上限。発火1回ごとに本物のマクロタスクを1往復するため、
+ * 低速な端末でもタイムアウト (1秒) より十分早く上限に届く値にしている。
+ * 仮想経過時間では判定しない (長い delay の setTimeout 1回を誤検出しないように)。
  */
 const MAX_TIMER_FIRES = 10000
-const MAX_VIRTUAL_MS = 60 * 60 * 1000
 
 /**
  * setTimeout / setInterval / clear* と Date.now / performance.now / new Date() を
@@ -58,10 +57,9 @@ function installVirtualTime(global, onUncaught) {
   /** id -> { time, seq, cb, args, interval } */
   const timers = new Map()
 
-  const toDelay = (delay) => {
-    const n = Number(delay)
-    return Number.isFinite(n) && n > 0 ? n : 0
-  }
+  // ブラウザと同じく delay を 32bit 符号付き整数 (WebIDL long) に変換し、負なら 0 にする。
+  // そのため 2 ** 31 以上の delay は桁あふれして即時 (や短い delay) で発火する。
+  const toDelay = (delay) => Math.max(Number(delay) | 0, 0)
 
   function schedule(cb, delay, args, repeat) {
     if (typeof cb !== 'function') {
@@ -144,8 +142,8 @@ function installVirtualTime(global, onUncaught) {
         continue
       }
       const [id, timer] = popEarliest()
-      if (++fires > MAX_TIMER_FIRES || timer.time > MAX_VIRTUAL_MS) {
-        // 0ms タイマーの再帰 (仮想時間が進まない) や setInterval の止め忘れ (仮想時間だけ進む)
+      if (++fires > MAX_TIMER_FIRES) {
+        // 0ms タイマーの再帰や setInterval の止め忘れ
         settled = { status: 'runaway-timers' }
         break
       }
