@@ -41,11 +41,6 @@ export default defineConfig({
   // 配下で配信するためのベースパス。
   base: '/js-workshop/',
   plugins: [markdownHtml(), react()],
-  // QuickJS の変換 (release-sync) は WASM を伴う。pre-bundle すると dev で
-  // wasm が正しく読み込めないため除外する。
-  optimizeDeps: {
-    exclude: ['quickjs-emscripten-core', '@jitl/quickjs-wasmfile-release-sync'],
-  },
   build: {
     // 500kB 超の唯一のチャンクは CodeMirror (約507kB) で、必要時に読み込む
     // 意図的な async ベンダチャンク。エントリを塞がないため閾値を上げて警告を抑制する。

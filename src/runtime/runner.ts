@@ -1,14 +1,8 @@
-import {
-  newQuickJSWASMModuleFromVariant,
-  shouldInterruptAfterDeadline,
-  type QuickJSContext,
-  type QuickJSHandle,
-  type QuickJSWASMModule,
-} from 'quickjs-emscripten-core'
-// 単一バリアント (release + sync) だけを依存することで、wasm を1つに絞る。
-// barrel の 'quickjs-emscripten' は4バリアントを静的参照し全 wasm を同梱してしまう。
-import releaseSyncVariant from '@jitl/quickjs-wasmfile-release-sync'
 import type { ProblemTestCase } from '../problems/types'
+// sandbox 内で動くスクリプトは import できない (opaque origin の blob: Worker) ため、
+// 文字列として取り込み iframe の srcdoc に埋め込む。
+import hostSource from './sandbox/host.js?raw'
+import workerSource from './sandbox/worker.js?raw'
 
 /** console のどのメソッドから出力されたか (表示で log と error 等を区別する)。 */
 export type LogLevel = 'log' | 'info' | 'debug' | 'warn' | 'error'
@@ -39,276 +33,142 @@ export interface GradeResult {
 
 /** 1ケースあたりの実行時間上限 (ms)。無限ループ対策 (SPEC 3)。 */
 export const TIMEOUT_MS = 1000
-const MEMORY_LIMIT_BYTES = 128 * 1024 * 1024
 
-let modulePromise: Promise<QuickJSWASMModule> | null = null
-function loadQuickJS(): Promise<QuickJSWASMModule> {
-  if (!modulePromise) modulePromise = newQuickJSWASMModuleFromVariant(releaseSyncVariant)
-  return modulePromise
+/** sandbox/host.js が返す1ケースの実行結果。 */
+interface SandboxResult {
+  status: 'fulfilled' | 'rejected' | 'stalled' | 'runaway-timers' | 'timeout' | 'crashed'
+  errorMessage?: string
+  logs: LogEntry[]
 }
 
-/** console.log の引数を1つの文字列に整形する。 */
-function formatValue(value: unknown): string {
-  if (typeof value === 'string') return value
-  if (typeof value === 'bigint') return `${value}n`
-  if (value === undefined) return 'undefined'
-  if (typeof value === 'function') return '[Function]'
-  try {
-    return JSON.stringify(value) ?? String(value)
-  } catch {
-    return String(value)
-  }
+/**
+ * 受講者コードの実行環境 = sandbox iframe + 1ケースごとの Web Worker (SPEC 3)。
+ *
+ * - iframe は allow-scripts のみの sandbox で origin が opaque になり、アプリ本体の
+ *   DOM・localStorage (進捗やコード) に触れられない。
+ * - CSP で通信を遮断する (fetch はモック)。GitHub Pages ではヘッダーを設定できないので
+ *   meta で指定する。srcdoc は親の CSP も継承するため、アプリに CSP を足す場合は
+ *   'unsafe-eval' と blob: の Worker を許可すること。
+ * - Worker から本物の Worker URL は opaque origin の同一オリジン制約で使えないため、
+ *   iframe 内で blob: URL を作って起動する (sandbox/host.js)。
+ */
+const CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline' 'unsafe-eval' blob:",
+  'worker-src blob:',
+  "connect-src 'none'",
+].join('; ')
+
+/** <script> 内に埋め込んでも </script> で途切れないようにする。 */
+const escapeScript = (source: string) => source.replace(/<\/(script)/gi, '<\\/$1')
+
+const srcdoc = `<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${CSP}">
+<script>
+const WORKER_SOURCE = ${JSON.stringify(workerSource).replace(/</g, '\\u003c')};
+${escapeScript(hostSource)}
+</script>`
+
+interface Sandbox {
+  run(studentCode: string, testCode: string): Promise<SandboxResult>
 }
 
-/** dump 結果から表示用のエラーメッセージを取り出す。 */
-function formatError(dumped: unknown): string {
-  if (typeof dumped === 'string') return dumped
-  if (dumped && typeof dumped === 'object' && 'message' in dumped) {
-    const { name, message } = dumped as { name?: unknown; message?: unknown }
-    const msg = typeof message === 'string' ? message : formatValue(message)
-    // throw new Error(...) の素の Error は message だけを見せる (SPEC 4.6)。
-    // ReferenceError 等は種別が手掛かりになるので name を前置する。
-    if (typeof name === 'string' && name && name !== 'Error') {
-      return `${name}: ${msg}`
+let sandboxPromise: Promise<Sandbox> | null = null
+
+/** sandbox iframe を1つだけ作り、以後の採点で使い回す。 */
+function getSandbox(): Promise<Sandbox> {
+  if (sandboxPromise) return sandboxPromise
+  sandboxPromise = new Promise((resolve) => {
+    const iframe = document.createElement('iframe')
+    iframe.sandbox.add('allow-scripts')
+    iframe.hidden = true
+    iframe.tabIndex = -1
+    iframe.setAttribute('aria-hidden', 'true')
+    iframe.title = 'コード実行環境'
+    iframe.srcdoc = srcdoc
+
+    let nextId = 0
+    const pending = new Map<number, (result: SandboxResult) => void>()
+    const sandbox: Sandbox = {
+      run(studentCode, testCode) {
+        return new Promise((resolveRun) => {
+          const id = nextId++
+          pending.set(id, resolveRun)
+          iframe.contentWindow?.postMessage(
+            { type: 'run', id, studentCode, testCode, timeoutMs: TIMEOUT_MS },
+            '*',
+          )
+        })
+      },
     }
-    return msg
-  }
-  return formatValue(dumped)
-}
 
-/** ゲスト側に console を用意し、出力を logs に蓄積する (SPEC 5.3)。 */
-function installConsole(vm: QuickJSContext, logs: LogEntry[]): void {
-  const consoleObj = vm.newObject()
-  const levels: LogLevel[] = ['log', 'info', 'debug', 'warn', 'error']
-  // メソッドごとに level を付けて蓄積し、表示時に log / error 等を区別できるようにする。
-  for (const level of levels) {
-    const fn = vm.newFunction(level, (...args: QuickJSHandle[]) => {
-      logs.push({ level, text: args.map((arg) => formatValue(vm.dump(arg))).join(' ') })
+    window.addEventListener('message', (event) => {
+      // origin は opaque ("null") なので、送信元の window で sandbox からの応答か判定する。
+      if (event.source !== iframe.contentWindow) return
+      const message = event.data
+      if (message?.type === 'ready') {
+        resolve(sandbox)
+      } else if (message?.type === 'result') {
+        const resolveRun = pending.get(message.id)
+        pending.delete(message.id)
+        resolveRun?.({ status: message.status, errorMessage: message.errorMessage, logs: message.logs })
+      }
     })
-    vm.setProp(consoleObj, level, fn)
-    fn.dispose()
-  }
-  vm.setProp(vm.global, 'console', consoleObj)
-  consoleObj.dispose()
+    document.body.append(iframe)
+  })
+  return sandboxPromise
 }
 
-interface VirtualTimer {
-  delay: number
-  seq: number
-  cb: QuickJSHandle
+const interruptMessage = `実行が ${TIMEOUT_MS}ms を超えたため中断しました(無限ループの可能性があります)`
+// 実行できる処理が無くなったのに pending のまま。resolve やコールバックの
+// 呼び忘れという初学者の典型ミスなので、無限ループ疑いとは区別して伝える。
+const stalledMessage =
+  'テストが完了しませんでした (Promise が解決されないままです。resolve やコールバックを呼び忘れていませんか?)'
+// 0ms タイマーの再帰呼び出しや setInterval の止め忘れ。無限ループの一種だが、
+// 原因がタイマーだと分かるように区別して伝える。
+const runawayTimersMessage =
+  'テストが完了しませんでした (タイマーが止まらずに発火し続けています。setTimeout の再帰呼び出しや clearInterval の呼び忘れはありませんか?)'
+
+function toCaseResult(test: ProblemTestCase, result: SandboxResult): CaseResult {
+  const base = { name: test.name, code: test.code, logs: result.logs }
+  switch (result.status) {
+    case 'fulfilled':
+      return { ...base, passed: true }
+    case 'rejected':
+    case 'crashed':
+      return { ...base, passed: false, errorMessage: result.errorMessage }
+    case 'stalled':
+      return { ...base, passed: false, errorMessage: stalledMessage }
+    case 'runaway-timers':
+      return { ...base, passed: false, errorMessage: runawayTimersMessage }
+    case 'timeout':
+      return { ...base, passed: false, timedOut: true, errorMessage: interruptMessage }
+  }
 }
+
+/** 同時に実行する Worker 数の上限。無限ループのケースが並んでも CPU を占有しすぎないように。 */
+const CONCURRENCY = Math.max(1, Math.min(navigator.hardwareConcurrency || 2, 4))
 
 /**
- * QuickJS には setTimeout が無いので、ホスト側の仮想タイマーとして実装する。
- * 実時間は待たず、駆動ループが遅延の昇順 (同遅延は登録順) でコールバックを発火する。
- * これにより非同期問題 (callback / promise 等) を決定論的かつ高速に採点できる。
- */
-function installSetTimeout(vm: QuickJSContext, timers: VirtualTimer[]): void {
-  let seq = 0
-  const setTimeoutFn = vm.newFunction(
-    'setTimeout',
-    (cbHandle: QuickJSHandle, delayHandle?: QuickJSHandle) => {
-      const delay = delayHandle && vm.typeof(delayHandle) === 'number' ? vm.getNumber(delayHandle) : 0
-      // コールバックは呼び出し後も保持する必要があるので dup する。
-      timers.push({ delay, seq: seq++, cb: cbHandle.dup() })
-      return vm.newNumber(timers.length)
-    },
-  )
-  // clearTimeout は今回の問題群では使われないが、存在しないと参照エラーになるため no-op で用意。
-  const clearTimeoutFn = vm.newFunction('clearTimeout', () => vm.undefined)
-  vm.setProp(vm.global, 'setTimeout', setTimeoutFn)
-  vm.setProp(vm.global, 'clearTimeout', clearTimeoutFn)
-  setTimeoutFn.dispose()
-  clearTimeoutFn.dispose()
-}
-
-/**
- * ネットワークに依存しない決定論的な fetch のモックを注入する。
- * fetch 問題が参照する固定のレスポンスだけを返す (オフライン・再現可能)。
- */
-function installFetch(vm: QuickJSContext): void {
-  const preamble = `globalThis.fetch = (url) => {
-  const DB = {
-    "https://dummyjson.com/todos/1": { id: 1, todo: "Do something nice for someone you care about", completed: false, userId: 152 },
-  };
-  const body = DB[url];
-  if (!body) {
-    return Promise.resolve({ ok: false, status: 404, json: () => Promise.reject(new Error("Not Found")) });
-  }
-  return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
-};`
-  const res = vm.evalCode(preamble)
-  if (res.error) res.error.dispose()
-  else res.value.dispose()
-}
-
-/**
- * 受講者コード + 1つの case.js を1つの async 関数にまとめ、隔離環境で実行する (SPEC 5.1)。
- * async でラップすることで await・Promise・setTimeout を含む問題も採点できる。
- * 同期問題は await を含まないだけで、同じ経路を通る。
- */
-function runCase(
-  QuickJS: QuickJSWASMModule,
-  studentCode: string,
-  test: ProblemTestCase,
-): CaseResult {
-  const runtime = QuickJS.newRuntime()
-  runtime.setMemoryLimit(MEMORY_LIMIT_BYTES)
-  // 無限ループ対策: 期限を過ぎたら実行を中断する。pump 全体で共有する単一の期限。
-  const deadline = Date.now() + TIMEOUT_MS
-  runtime.setInterruptHandler(shouldInterruptAfterDeadline(deadline))
-  const vm = runtime.newContext()
-  const logs: LogEntry[] = []
-  const timers: VirtualTimer[] = []
-  installConsole(vm, logs)
-  installSetTimeout(vm, timers)
-  installFetch(vm)
-
-  let passed = true
-  let errorMessage: string | undefined
-  let timedOut = false
-  /** マイクロタスクも仮想タイマーも尽きたのに Promise が pending のまま (resolve 呼び忘れ等) */
-  let stalled = false
-
-  const interruptMessage = `実行が ${TIMEOUT_MS}ms を超えたため中断しました(無限ループの可能性があります)`
-
-  // 受講者コードと case.js を1つの async 関数にまとめる。
-  // 戻り値の Promise の状態 (fulfilled / rejected) で合否を判定する。
-  const source = `(async () => {\n${studentCode}\n;\n${test.code}\n})()`
-  const evalResult = vm.evalCode(source)
-
-  if (evalResult.error) {
-    // 同期部分の実行で throw / 中断が起きたケース。
-    const dumped = vm.dump(evalResult.error)
-    evalResult.error.dispose()
-    const message = formatError(dumped)
-    passed = false
-    if (/interrupted/i.test(message)) {
-      timedOut = true
-      errorMessage = interruptMessage
-    } else {
-      errorMessage = message
-    }
-    disposeTimers(timers)
-    vm.dispose()
-    runtime.dispose()
-    return { name: test.name, code: test.code, passed, errorMessage, timedOut, logs }
-  }
-
-  const resultPromise = evalResult.value
-
-  // 駆動ループ: Promise が settle するまで、マイクロタスク実行と仮想タイマー発火を繰り返す。
-  while (true) {
-    if (isSettled(vm, resultPromise)) break
-
-    if (Date.now() > deadline) {
-      timedOut = true
-      break
-    }
-
-    const jobs = runtime.executePendingJobs(-1)
-    if (jobs.error) {
-      // マイクロタスク実行中の中断 (無限ループ等)。
-      const dumped = vm.dump(jobs.error)
-      jobs.error.dispose()
-      const message = formatError(dumped)
-      if (/interrupted/i.test(message)) {
-        timedOut = true
-      } else {
-        passed = false
-        errorMessage = message
-      }
-      break
-    }
-    if (jobs.value > 0) continue
-
-    // マイクロタスクが尽きた: 最も早い仮想タイマーを1つ発火する。
-    if (timers.length === 0) {
-      // これ以上進めない (pending のまま)。タイムアウトではなく「解決されない Promise」。
-      stalled = true
-      break
-    }
-    timers.sort((a, b) => a.delay - b.delay || a.seq - b.seq)
-    const timer = timers.shift() as VirtualTimer
-    const callRes = vm.callFunction(timer.cb, vm.undefined)
-    timer.cb.dispose()
-    if (callRes.error) callRes.error.dispose()
-    else callRes.value.dispose()
-  }
-
-  if (passed && errorMessage === undefined && !timedOut) {
-    const state = vm.getPromiseState(resultPromise)
-    if (state.type === 'fulfilled') {
-      state.value.dispose()
-    } else if (state.type === 'rejected') {
-      passed = false
-      const dumped = vm.dump(state.error)
-      state.error.dispose()
-      const message = formatError(dumped)
-      // 非同期コードの中断は、ジョブの reject として現れることがある。
-      if (/interrupted/i.test(message)) {
-        timedOut = true
-      } else {
-        errorMessage = message
-      }
-    } else if (stalled) {
-      // 実行できる処理が無くなったのに pending のまま。resolve やコールバックの
-      // 呼び忘れという初学者の典型ミスなので、無限ループ疑いとは区別して伝える。
-      passed = false
-      errorMessage =
-        'テストが完了しませんでした (Promise が解決されないままです。resolve やコールバックを呼び忘れていませんか?)'
-    } else {
-      // まだ pending → タイムアウト扱い。
-      passed = false
-      timedOut = true
-    }
-  }
-
-  if (timedOut) {
-    passed = false
-    errorMessage = interruptMessage
-  }
-
-  resultPromise.dispose()
-  disposeTimers(timers)
-  vm.dispose()
-  runtime.dispose()
-
-  return { name: test.name, code: test.code, passed, errorMessage, timedOut, logs }
-}
-
-/**
- * Promise が settle 済みか調べる。getPromiseState が返す value/error handle は
- * その都度解放する必要があるので、判定だけ行いここで dispose する。
- */
-function isSettled(vm: QuickJSContext, promise: QuickJSHandle): boolean {
-  const state = vm.getPromiseState(promise)
-  if (state.type === 'fulfilled') {
-    state.value.dispose()
-    return true
-  }
-  if (state.type === 'rejected') {
-    state.error.dispose()
-    return true
-  }
-  return false
-}
-
-/** 未発火のまま残った仮想タイマーのコールバック handle を解放する。 */
-function disposeTimers(timers: VirtualTimer[]): void {
-  for (const timer of timers) timer.cb.dispose()
-  timers.length = 0
-}
-
-/**
- * 受講者コードを全テストケースに対して個別実行し採点する。
+ * 受講者コードを全テストケースに対して個別実行し採点する (SPEC 5.1)。
+ * ケースごとに新しい Worker で実行するので、ケース間でグローバルの汚染は起きない。
  * 全ケース通過時のみ solved=true (部分点なし, SPEC 5.2)。
  */
 export async function grade(
   studentCode: string,
   tests: ProblemTestCase[],
 ): Promise<GradeResult> {
-  const QuickJS = await loadQuickJS()
-  const cases = tests.map((test) => runCase(QuickJS, studentCode, test))
+  const sandbox = await getSandbox()
+  const cases: CaseResult[] = new Array(tests.length)
+  let next = 0
+  const workers = Array.from({ length: Math.min(CONCURRENCY, tests.length) }, async () => {
+    while (next < tests.length) {
+      const index = next++
+      const test = tests[index]
+      cases[index] = toCaseResult(test, await sandbox.run(studentCode, test.code))
+    }
+  })
+  await Promise.all(workers)
   return { cases, solved: cases.length > 0 && cases.every((caseResult) => caseResult.passed) }
 }
