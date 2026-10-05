@@ -8,7 +8,8 @@
 //   受信: { studentCode, testCode }
 //   送信: { type: 'started' }                           実行開始 (ここからタイムアウトを計る)
 //         { type: 'log', level, text }                   console 出力 (逐次送る。打ち切られても残る)
-//         { type: 'done', status, errorMessage? }        status: 'fulfilled' | 'rejected' | 'stalled'
+//         { type: 'done', status, errorMessage? }
+//           status: 'fulfilled' | 'rejected' | 'stalled' | 'runaway-timers'
 //
 // 無限ループ (同期・マイクロタスク) はこの中では止められないので、親が terminate() する。
 
@@ -22,7 +23,13 @@ const MAX_LOGS = 1000
  */
 const STALL_GRACE_MS = 200
 
-/** setInterval の止め忘れ等で、仮想時間だけが進み続けるときの上限 (ms)。 */
+/**
+ * タイマーが止まらずに発火し続けている (setTimeout の再帰呼び出し・setInterval の止め忘れ)
+ * と判定する上限。発火回数と仮想経過時間のどちらかを超えたら打ち切る。
+ * 発火1回ごとに本物のマクロタスクを1往復するため、発火回数は低速な端末でも
+ * タイムアウト (1秒) より十分早く上限に届く値にしている。
+ */
+const MAX_TIMER_FIRES = 10000
 const MAX_VIRTUAL_MS = 60 * 60 * 1000
 
 /**
@@ -111,10 +118,11 @@ function installVirtualTime(global, onUncaught) {
 
   /**
    * promise が settle するまで「マイクロタスク消化 → 最も早い仮想タイマーを1つ発火」を繰り返す。
-   * 戻り値: { status: 'fulfilled' | 'rejected' | 'stalled', error? }
+   * 戻り値: { status: 'fulfilled' | 'rejected' | 'stalled' | 'runaway-timers', error? }
    */
   async function drive(promise) {
     let settled = null
+    let fires = 0
     promise.then(
       () => (settled = { status: 'fulfilled' }),
       (error) => (settled = { status: 'rejected', error }),
@@ -136,9 +144,9 @@ function installVirtualTime(global, onUncaught) {
         continue
       }
       const [id, timer] = popEarliest()
-      if (timer.time > MAX_VIRTUAL_MS) {
-        // setInterval の止め忘れ等で、仮想時間だけが進み続けるケース
-        settled = { status: 'stalled' }
+      if (++fires > MAX_TIMER_FIRES || timer.time > MAX_VIRTUAL_MS) {
+        // 0ms タイマーの再帰 (仮想時間が進まない) や setInterval の止め忘れ (仮想時間だけ進む)
+        settled = { status: 'runaway-timers' }
         break
       }
       now = timer.time

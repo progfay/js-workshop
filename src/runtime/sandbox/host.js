@@ -8,7 +8,7 @@
 //   受信: { type: 'run', id, studentCode, testCode, timeoutMs }
 //   送信: { type: 'ready' }
 //         { type: 'result', id, status, errorMessage?, logs }
-//           status: 'fulfilled' | 'rejected' | 'stalled' | 'timeout' | 'crashed'
+//           status: 'fulfilled' | 'rejected' | 'stalled' | 'runaway-timers' | 'timeout' | 'crashed'
 
 /* global WORKER_SOURCE */
 

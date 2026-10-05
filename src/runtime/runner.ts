@@ -36,7 +36,7 @@ export const TIMEOUT_MS = 1000
 
 /** sandbox/host.js が返す1ケースの実行結果。 */
 interface SandboxResult {
-  status: 'fulfilled' | 'rejected' | 'stalled' | 'timeout' | 'crashed'
+  status: 'fulfilled' | 'rejected' | 'stalled' | 'runaway-timers' | 'timeout' | 'crashed'
   errorMessage?: string
   logs: LogEntry[]
 }
@@ -125,6 +125,10 @@ const interruptMessage = `実行が ${TIMEOUT_MS}ms を超えたため中断し�
 // 呼び忘れという初学者の典型ミスなので、無限ループ疑いとは区別して伝える。
 const stalledMessage =
   'テストが完了しませんでした (Promise が解決されないままです。resolve やコールバックを呼び忘れていませんか?)'
+// 0ms タイマーの再帰呼び出しや setInterval の止め忘れ。無限ループの一種だが、
+// 原因がタイマーだと分かるように区別して伝える。
+const runawayTimersMessage =
+  'テストが完了しませんでした (タイマーが止まらずに発火し続けています。setTimeout の再帰呼び出しや clearInterval の呼び忘れはありませんか?)'
 
 function toCaseResult(test: ProblemTestCase, result: SandboxResult): CaseResult {
   const base = { name: test.name, code: test.code, logs: result.logs }
@@ -136,6 +140,8 @@ function toCaseResult(test: ProblemTestCase, result: SandboxResult): CaseResult 
       return { ...base, passed: false, errorMessage: result.errorMessage }
     case 'stalled':
       return { ...base, passed: false, errorMessage: stalledMessage }
+    case 'runaway-timers':
+      return { ...base, passed: false, errorMessage: runawayTimersMessage }
     case 'timeout':
       return { ...base, passed: false, timedOut: true, errorMessage: interruptMessage }
   }
