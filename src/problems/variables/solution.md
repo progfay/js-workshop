@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const language = "JavaScript";
 
 let mood = "bored";

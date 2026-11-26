@@ -1,8 +1,11 @@
 // localStorage への保存 (SPEC 9)。プライベートブラウズ等で失敗しても
 // アプリが落ちないよう、すべて try/catch でフォールバックする。
 
-const CODE_PREFIX = 'jsw:code:'
-const PROGRESS_KEY = 'jsw:progress'
+// TypeScript 版 (型付きのスターターコード + 型エラーも不正解) へ移行した際にキーを変えた。
+// 旧版 (JavaScript) で保存した型注釈なしのコードや「正解」の進捗は、
+// 新しい採点では通らないため読み込まない。
+const CODE_PREFIX = 'jsw:ts:code:'
+const PROGRESS_KEY = 'jsw:ts:progress'
 const SPLIT_KEY = 'jsw:split'
 
 export type Progress = Record<string, boolean>

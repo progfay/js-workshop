@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const food = { types: "only pizza" };
 const types = food.types; // -> "only pizza"
 ```
@@ -9,7 +9,7 @@ const types = food.types; // -> "only pizza"
 
 角括弧が役立つのは、キーが変数に入っているときです。
 
-```js
+```ts
 const key = "types";
 food[key]; // -> "only pizza"  (food.key では取れない)
 ```

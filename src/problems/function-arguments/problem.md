@@ -2,8 +2,8 @@
 
 関数は複数の引数を受け取れます。引数は左から順に対応します。
 
-```js
-function add(a, b) {
+```ts
+function add(a: number, b: number): number {
   return a + b;
 }
 add(2, 3); // -> 5
@@ -13,7 +13,7 @@ add(2, 3); // -> 5
 
 3つの数値 `a`, `b`, `c` を受け取り、`b * c + a` を返す関数 `math` を実装してください。
 
-```js
+```ts
 math(53, 61, 67); // -> 4140  (61 * 67 + 53)
 ```
 

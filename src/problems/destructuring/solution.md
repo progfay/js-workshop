@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function topTwo(pizza) {
+```ts
+function topTwo(pizza: { toppings: string[] }): string[] {
   const { toppings } = pizza;
   const [first, second] = toppings;
   return [second, first];
@@ -12,8 +12,8 @@ function topTwo(pizza) {
 
 慣れてくると、2つの分割代入をネストして1行にまとめることもできます。
 
-```js
-function topTwo({ toppings: [first, second] }) {
+```ts
+function topTwo({ toppings: [first, second] }: { toppings: string[] }): string[] {
   return [second, first];
 }
 ```

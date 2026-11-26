@@ -2,13 +2,13 @@
 
 アロー関数を使うと関数をより簡潔に書けます。
 
-```js
-const double = (x) => {
+```ts
+const double = (x: number) => {
   return x * 2;
 };
 
 // return だけなら波括弧と return を省略できる
-const double = (x) => x * 2;
+const double = (x: number) => x * 2;
 ```
 
 ## やってみよう
@@ -16,6 +16,6 @@ const double = (x) => x * 2;
 前の課題の `eat` 関数を**アロー関数**で書き直してください。
 文字列 `food` を受け取り、`food + " tasted really good."` を返します。
 
-```js
+```ts
 eat("apples"); // -> "apples tasted really good."
 ```

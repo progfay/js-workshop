@@ -2,7 +2,7 @@
 
 配列は値を順番に並べたものです。角括弧で書きます。
 
-```js
+```ts
 const pizzaToppings = ["tomato sauce", "cheese", "pepperoni"];
 ```
 
@@ -10,7 +10,7 @@ const pizzaToppings = ["tomato sauce", "cheese", "pepperoni"];
 
 変数 `pizzaToppings` に、次の3要素の配列を代入してください。
 
-```js
+```ts
 ["tomato sauce", "cheese", "pepperoni"]
 ```
 

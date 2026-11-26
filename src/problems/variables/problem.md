@@ -2,13 +2,13 @@
 
 変数は値に付ける名前です。`const` や `let` を使って宣言します。
 
-```js
+```ts
 const example = "some string";
 ```
 
 `const` で宣言した変数には**再代入できません**。`let` は再代入できます。
 
-```js
+```ts
 let count = 0;
 count = 1; // OK (2回目からは let を付けずに = だけで代入する)
 

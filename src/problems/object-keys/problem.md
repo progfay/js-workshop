@@ -2,7 +2,7 @@
 
 `Object.keys()` はオブジェクトのキーをすべて文字列の配列で返します。
 
-```js
+```ts
 const car = { make: "Toyota", model: "Camry", year: 2020 };
 Object.keys(car); // -> ["make", "model", "year"]
 ```
@@ -11,7 +11,7 @@ Object.keys(car); // -> ["make", "model", "year"]
 
 次のオブジェクト `car` が与えられています。
 
-```js
+```ts
 const car = { make: "Honda", model: "Accord", year: 2020 };
 ```
 

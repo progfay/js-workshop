@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const a1 = false; // 0 == 1
 const a2 = false; // 0 === 1
 const a3 = true; // 10 == "10"  (型変換され等しい)

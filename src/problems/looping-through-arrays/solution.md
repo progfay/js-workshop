@@ -1,8 +1,8 @@
 # 解説
 
-```js
+```ts
 const pets = ["cat", "dog", "rat"];
-const plurals = [];
+const plurals: string[] = [];
 for (const pet of pets) {
   plurals.push(pet + "s");
 }

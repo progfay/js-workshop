@@ -1,7 +1,7 @@
 # 解説
 
-```js
-async function fetchTodo(id) {
+```ts
+async function fetchTodo(id: number): Promise<string> {
   const response = await fetch(`https://dummyjson.com/todos/${id}`);
   if (!response.ok) {
     throw new Error(`Error! Status: ${response.status}`);

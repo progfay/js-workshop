@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function evens(numbers) {
+```ts
+function evens(numbers: number[]): number[] {
   return numbers.filter((n) => n % 2 === 0);
 }
 ```

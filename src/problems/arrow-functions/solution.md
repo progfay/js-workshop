@@ -1,15 +1,15 @@
 # 解説
 
-```js
-const eat = (food) => food + " tasted really good.";
+```ts
+const eat = (food: string) => food + " tasted really good.";
 ```
 
 `return` だけの関数なので、波括弧と `return` を省略した一行で書けます。
 
 注意したいのは、**波括弧を書いたら `return` は省略できない**ことです。
 
-```js
-const eat = (food) => {
+```ts
+const eat = (food: string) => {
   food + " tasted really good."; // return が無いので undefined が返る!
 };
 ```

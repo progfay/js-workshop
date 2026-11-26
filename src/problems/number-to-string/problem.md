@@ -2,7 +2,7 @@
 
 数値を文字列に変換したいときは `.toString()` メソッドを使います。
 
-```js
+```ts
 const number = 256;
 const numString = number.toString(); // -> "256"
 ```

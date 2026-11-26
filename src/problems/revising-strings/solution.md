@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const pizza = "pizza is alright";
 const replaced = pizza.replace("alright", "wonderful");
 // -> "pizza is wonderful"

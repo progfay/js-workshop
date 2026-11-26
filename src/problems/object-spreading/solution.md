@@ -1,7 +1,10 @@
 # 解説
 
-```js
-function merge(a, b) {
+```ts
+function merge(
+  a: Record<string, unknown>,
+  b: Record<string, unknown>,
+): Record<string, unknown> {
   return { ...a, ...b };
 }
 ```

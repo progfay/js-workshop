@@ -2,7 +2,7 @@
 
 条件によって実行する処理を変えられます。
 
-```js
+```ts
 if (n > 1) {
   // n が 1 より大きいとき
 } else {
@@ -19,7 +19,7 @@ if (n > 1) {
 - `fruit` の文字数が **5 より大きい** → `"The fruit name has more than five characters."`
 - そうでなければ → `"The fruit name has five characters or less."`
 
-```js
+```ts
 describe("orange"); // -> "The fruit name has more than five characters."  (6 文字)
 describe("apple"); // -> "The fruit name has five characters or less."  (5 文字)
 ```

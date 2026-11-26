@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function squareAll(numbers) {
+```ts
+function squareAll(numbers: number[]): Promise<number[]> {
   return Promise.all(numbers.map((n) => fetchSquare(n)));
 }
 ```

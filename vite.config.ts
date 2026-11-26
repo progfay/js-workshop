@@ -42,8 +42,9 @@ export default defineConfig({
   base: '/js-workshop/',
   plugins: [markdownHtml(), react()],
   build: {
-    // 500kB 超の唯一のチャンクは CodeMirror (約507kB) で、必要時に読み込む
-    // 意図的な async ベンダチャンク。エントリを塞がないため閾値を上げて警告を抑制する。
-    chunkSizeWarningLimit: 600,
+    // 500kB 超のチャンクは CodeMirror (約507kB) と TypeScript コンパイラ (約890kB) で、
+    // どちらも必要時に読み込む意図的な async ベンダチャンク (後者は型チェック /
+    // エディタ用 Worker 専用)。エントリを塞がないため閾値を上げて警告を抑制する。
+    chunkSizeWarningLimit: 1000,
   },
 })

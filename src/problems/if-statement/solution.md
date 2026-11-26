@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function describe(fruit) {
+```ts
+function describe(fruit: string): string {
   if (fruit.length > 5) {
     return "The fruit name has more than five characters.";
   } else {
@@ -15,8 +15,8 @@ function describe(fruit) {
 
 `return` した時点で関数は終わるので、`else` を省略して次のようにも書けます。
 
-```js
-function describe(fruit) {
+```ts
+function describe(fruit: string): string {
   if (fruit.length > 5) {
     return "The fruit name has more than five characters.";
   }

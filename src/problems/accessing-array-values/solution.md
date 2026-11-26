@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const food = ["apple", "pizza", "pear"];
 const second = food[1]; // -> "pizza"
 ```

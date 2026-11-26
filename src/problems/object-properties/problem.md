@@ -2,7 +2,7 @@
 
 プロパティの値はドット記法か角括弧で取得できます。
 
-```js
+```ts
 const example = { pizza: "yummy" };
 example.pizza; // -> "yummy"
 example["pizza"]; // -> "yummy"
@@ -15,7 +15,7 @@ example["pizza"]; // -> "yummy"
 
 次のオブジェクト `food` が与えられています。
 
-```js
+```ts
 const food = { types: "only pizza" };
 ```
 

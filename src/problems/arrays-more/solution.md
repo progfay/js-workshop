@@ -1,9 +1,9 @@
 # 解説
 
-```js
-function primeHexes(limit) {
+```ts
+function primeHexes(limit: number): string[] {
   const numbers = [...Array(limit).keys()];
-  const isPrime = (num) => {
+  const isPrime = (num: number): boolean => {
     if (num < 2) return false;
     for (let i = 2; i < num; i++) {
       if (num % i === 0) return false;

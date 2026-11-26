@@ -13,7 +13,7 @@
 - カウンタは `0` から始まる
 - `makeCounter()` を複数回呼ぶと、それぞれ独立したカウンタになる
 
-```js
+```ts
 const [increment, decrement] = makeCounter();
 increment(); // -> 1
 increment(); // -> 2

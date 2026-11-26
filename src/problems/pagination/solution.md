@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function getPageNums(current, total, size) {
+```ts
+function getPageNums(current: number, total: number, size: number): number[] {
   const s = current - Math.floor((size - 1) / 2);
   const start = s < 1 ? 1 : s + size > total ? total - size + 1 : s;
   return range(start, start + size);

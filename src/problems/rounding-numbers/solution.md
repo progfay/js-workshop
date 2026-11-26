@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const roundUp = 1.5;
 const rounded = Math.round(roundUp);
 // -> 2
@@ -10,7 +10,7 @@ const rounded = Math.round(roundUp);
 
 `Math` には他にも丸めの仲間があります。`console.log` で結果を確かめてみましょう。
 
-```js
+```ts
 Math.floor(1.5); // -> 1  (切り捨て)
 Math.ceil(1.2); // -> 2  (切り上げ)
 ```

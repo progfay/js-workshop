@@ -4,7 +4,7 @@
 `setTimeout(callback, ms)` は、指定時間の後にコールバックを呼びます。
 コールバックは**今すぐではなく後で**呼ばれる点がポイントです。
 
-```js
+```ts
 setTimeout(() => {
   console.log("あとで呼ばれる");
 }, 1000);
@@ -15,7 +15,7 @@ console.log("先に呼ばれる");
 
 コールバック `callback` を受け取り、`setTimeout` を使って**後で**それを呼ぶ関数 `delay` を実装してください。
 
-```js
+```ts
 delay(() => {
   // setTimeout 経由で後から呼ばれる
 });

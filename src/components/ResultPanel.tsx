@@ -40,6 +40,7 @@ export function ResultPanel({ result, running, theme }: Props) {
                     <span className="case-badge">{c.passed ? 'PASS' : 'FAIL'}</span>
                     <span className="case-name">{c.name}</span>
                     {c.timedOut && <span className="case-tag">timeout</span>}
+                    {c.typeError && <span className="case-tag">型エラー</span>}
                   </span>
                   {c.errorMessage && <span className="case-error">{c.errorMessage}</span>}
                 </span>
