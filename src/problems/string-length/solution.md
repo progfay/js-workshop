@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const example = "example string";
 const length = example.length;
 ```

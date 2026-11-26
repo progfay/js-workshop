@@ -79,12 +79,12 @@ const problemModules = import.meta.glob<string>('./*/problem.md', {
 const solutionModules = import.meta.glob<string>('./*/solution.md', {
   import: 'default',
 })
-const templateModules = import.meta.glob<string>('./*/template.js', {
+const templateModules = import.meta.glob<string>('./*/template.ts', {
   eager: true,
   query: '?raw',
   import: 'default',
 })
-const testModules = import.meta.glob<string>('./*/test/*.js', {
+const testModules = import.meta.glob<string>('./*/test/*.ts', {
   eager: true,
   query: '?raw',
   import: 'default',
@@ -117,7 +117,7 @@ function testsFor(id: string): ProblemTestCase[] {
     .filter((path) => path.startsWith(prefix))
     .sort()
     .map((path) => ({
-      name: path.slice(prefix.length).replace(/\.js$/, ''),
+      name: path.slice(prefix.length).replace(/\.ts$/, ''),
       code: testModules[path],
     }))
 }
@@ -134,7 +134,7 @@ function buildProblem({ id, category, order }: ProblemPlacement): Problem {
     order,
     loadProblemHtml: pickLoader(problemModules, id, 'problem.md'),
     loadSolutionHtml: pickLoader(solutionModules, id, 'solution.md'),
-    template: pickRaw(templateModules, id, 'template.js'),
+    template: pickRaw(templateModules, id, 'template.ts'),
     tests: testsFor(id),
   }
 }

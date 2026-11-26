@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function getData(key) {
+```ts
+function getData(key: string): Promise<string> {
   return new Promise((resolve, reject) => {
     if (key === "greeting") {
       resolve("Hello");

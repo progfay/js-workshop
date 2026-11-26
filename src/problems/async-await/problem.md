@@ -3,7 +3,7 @@
 `async` を付けた関数の中では `await` が使えます。`await` は Promise が解決するまで待ち、
 その結果を値として返します。ループの中で `await` すると、**1つずつ順番に**待てます。
 
-```js
+```ts
 async function main() {
   const a = await stepA();
   const b = await stepB();
@@ -17,7 +17,7 @@ async function main() {
 投稿を取得する `getPosts` は用意済みです（**変更しないで**使ってください）。
 `getPosts(user)` は `["<user>: post1", "<user>: post2"]` で resolve します。
 
-```js
+```ts
 await getAllPosts(["a", "b"]);
 // -> ["a: post1", "a: post2", "b: post1", "b: post2"]
 ```

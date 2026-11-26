@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const car = { make: "Honda", model: "Accord", year: 2020 };
 const keys = Object.keys(car); // -> ["make", "model", "year"]
 ```
@@ -9,7 +9,7 @@ const keys = Object.keys(car); // -> ["make", "model", "year"]
 
 仲間のメソッドも `console.log` で試してみましょう。
 
-```js
+```ts
 Object.values(car); // -> ["Honda", "Accord", 2020]  (値の配列)
 Object.entries(car); // -> [["make", "Honda"], ...]  (キーと値のペアの配列)
 ```

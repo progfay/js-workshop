@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function getOrDefault(value, fallback) {
+```ts
+function getOrDefault(value: unknown, fallback: unknown): unknown {
   return value ?? fallback;
 }
 ```
@@ -9,8 +9,8 @@ function getOrDefault(value, fallback) {
 `??` を使うと「`null` / `undefined` のときだけ既定値」という意図を簡潔に書けます。
 `if` 文で書いた次のコードと同じ意味です。
 
-```js
-function getOrDefault(value, fallback) {
+```ts
+function getOrDefault(value: unknown, fallback: unknown): unknown {
   if (value === null || value === undefined) {
     return fallback;
   }

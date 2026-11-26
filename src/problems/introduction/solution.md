@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const message = "hello";
 ```
 

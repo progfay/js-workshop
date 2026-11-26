@@ -2,7 +2,7 @@
 
 オブジェクトは、各要素を整数ではなく**キー**で識別する値の集まりです。
 
-```js
+```ts
 const foodPreferences = {
   pizza: "yum",
   salad: "gross",
@@ -13,7 +13,7 @@ const foodPreferences = {
 
 変数 `pizza` を次のように定義してください。
 
-```js
+```ts
 const pizza = {
   toppings: ["cheese", "sauce", "pepperoni"],
   crust: "deep dish",

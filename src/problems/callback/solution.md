@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function delay(callback) {
+```ts
+function delay(callback: () => void): void {
   setTimeout(callback, 1000);
 }
 ```

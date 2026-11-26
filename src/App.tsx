@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { categories, problems } from './problems'
 import type { Problem } from './problems/types'
 import { grade, type GradeResult } from './runtime/runner'
+import { warmUpTypeChecker } from './runtime/typeCheck'
 import { Editor } from './components/Editor'
 import { Markdown } from './components/Markdown'
 import { ResultPanel } from './components/ResultPanel'
@@ -16,7 +17,7 @@ import {
   setSolved,
   type Progress,
 } from './storage/storage'
-import { formatJs } from './lib/format'
+import { formatTs } from './lib/format'
 import './styles/app.css'
 
 const PROBLEM_PARAM = 'problem'
@@ -76,6 +77,11 @@ export default function App() {
   const colDragging = useRef(false)
   // キーボードショートカット(⌘/Ctrl+S)から最新の整形処理を呼ぶための ref。
   const formatRef = useRef<() => void>(() => {})
+
+  // 初回の採点を待たせないよう、型チェック Worker を裏で温めておく。
+  useEffect(() => {
+    warmUpTypeChecker()
+  }, [])
 
   // 問題を開いたとき: 保存済みコードがあれば復元、空なら template (SPEC 9)。
   // 前回の採点結果もクリアする。
@@ -176,7 +182,7 @@ export default function App() {
   // Prettier で整形。構文エラー時はメッセージを出す。
   const format = async () => {
     try {
-      const formatted = await formatJs(code)
+      const formatted = await formatTs(code)
       setCode(formatted)
       saveCode(current.id, formatted)
       setFormatError(null)
@@ -218,7 +224,7 @@ export default function App() {
             <line x1="3" y1="15" x2="17" y2="15" />
           </svg>
         </button>
-        <h1>JavaScript 演習</h1>
+        <h1>TypeScript 演習</h1>
       </header>
 
       <div className="app-body" style={{ '--desc-ratio': descRatio } as React.CSSProperties}>

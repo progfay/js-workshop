@@ -1,4 +1,5 @@
 import type { ProblemTestCase } from '../problems/types'
+import { formatDiagnostics, typeCheck } from './typeCheck'
 // sandbox 内で動くスクリプトは import できない (opaque origin の blob: Worker) ため、
 // 文字列として取り込み iframe の srcdoc に埋め込む。
 import hostSource from './sandbox/host.js?raw'
@@ -21,6 +22,8 @@ export interface CaseResult {
   errorMessage?: string
   /** タイムアウト (無限ループ等) で打ち切られたか */
   timedOut?: boolean
+  /** 型エラーで不正解になったか (この場合コードは実行されない) */
+  typeError?: boolean
   /** 受講者コードの console 出力 (デバッグ用, SPEC 5.3)。level でメソッドを区別する。 */
   logs: LogEntry[]
 }
@@ -147,6 +150,42 @@ function toCaseResult(test: ProblemTestCase, result: SandboxResult): CaseResult 
   }
 }
 
+/**
+ * 1ケースを採点する。受講者コードとテストを連結して型チェックし、型エラーがあれば
+ * 実行せず不正解にする。通ったものだけ JavaScript に変換して sandbox で実行する。
+ */
+async function gradeCase(
+  sandbox: Sandbox,
+  studentCode: string,
+  test: ProblemTestCase,
+): Promise<CaseResult> {
+  let checked
+  try {
+    checked = await typeCheck(studentCode, test.code)
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    return {
+      name: test.name,
+      passed: false,
+      code: test.code,
+      logs: [],
+      errorMessage: `型チェックを実行できませんでした: ${reason}`,
+    }
+  }
+  if (checked.diagnostics.length > 0) {
+    return {
+      name: test.name,
+      passed: false,
+      typeError: true,
+      code: test.code,
+      logs: [],
+      errorMessage: formatDiagnostics(checked.diagnostics),
+    }
+  }
+  // 変換後の JavaScript は受講者コードとテストを連結済みなので、テスト側は空で渡す。
+  return toCaseResult(test, await sandbox.run(checked.js, ''))
+}
+
 /** 同時に実行する Worker 数の上限。無限ループのケースが並んでも CPU を占有しすぎないように。 */
 const CONCURRENCY = Math.max(1, Math.min(navigator.hardwareConcurrency || 2, 4))
 
@@ -166,7 +205,7 @@ export async function grade(
     while (next < tests.length) {
       const index = next++
       const test = tests[index]
-      cases[index] = toCaseResult(test, await sandbox.run(studentCode, test.code))
+      cases[index] = await gradeCase(sandbox, studentCode, test)
     }
   })
   await Promise.all(workers)

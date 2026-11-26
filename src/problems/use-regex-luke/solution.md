@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function extractZipcodes(text) {
+```ts
+function extractZipcodes(text: string): string[] {
   const candidates = text.match(/[\d-]+/g) || [];
   return candidates.filter((s) => /^\d{7}$/.test(s) || /^\d{3}-\d{4}$/.test(s));
 }

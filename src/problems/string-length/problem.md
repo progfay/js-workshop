@@ -2,7 +2,7 @@
 
 文字列の文字数は `.length` プロパティで取得できます。
 
-```js
+```ts
 const example = "example string";
 example.length; // -> 14
 ```

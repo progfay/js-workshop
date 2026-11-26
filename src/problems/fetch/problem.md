@@ -3,7 +3,7 @@
 `fetch(url)` は HTTP リクエストを送り、レスポンスを表す Promise を返します。
 `response.ok` でステータスが成功（200〜299）かを確認し、`response.json()` で本文を JSON として読み取ります。
 
-```js
+```ts
 const response = await fetch(url);
 if (!response.ok) {
   throw new Error(`Error! Status: ${response.status}`);
@@ -21,7 +21,7 @@ const data = await response.json();
 本文の `todo` プロパティ（文字列）を返す `async` 関数 `fetchTodo` を実装してください。
 `response.ok` が `false` のときは `new Error(\`Error! Status: ${response.status}\`)` を throw してください。
 
-```js
+```ts
 await fetchTodo(1); // -> "Do something nice for someone you care about"
 await fetchTodo(2); // -> throw (Error! Status: 404)
 ```

@@ -3,7 +3,7 @@ import CodeMirror, {
   type ReactCodeMirrorRef,
 } from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
-import { linter, lintGutter } from '@codemirror/lint'
+import { lintGutter } from '@codemirror/lint'
 import { autocompletion } from '@codemirror/autocomplete'
 import { Compartment, type Extension } from '@codemirror/state'
 import * as Comlink from 'comlink'
@@ -11,11 +11,11 @@ import {
   tsAutocompleteWorker,
   tsFacetWorker,
   tsHoverWorker,
+  tsLinterWorker,
   tsSyncWorker,
 } from '@valtown/codemirror-ts'
 import type { WorkerShape } from '@valtown/codemirror-ts/worker'
 import type { ThemeName } from '../hooks/useTheme'
-import { createJsLintSource } from '../lib/jsLinter'
 
 interface Props {
   value: string
@@ -23,23 +23,18 @@ interface Props {
   theme: ThemeName
 }
 
-// TS 言語サービスがエディタ内のコードを識別するための仮想ファイルパス。
-// `.js` 拡張子により TS 構文は許容されず、JSDoc を型として解釈する (tsWorker.ts)。
-const TS_PATH = 'index.js'
+// TS 言語サービスがエディタ内のコードを識別するための仮想ファイルパス (tsWorker.ts)。
+const TS_PATH = 'index.ts'
 
 // theme 切り替えなどの再レンダーで作り直さない静的拡張。
-// 構文エラーは引き続き meriyah ベースの linter で表示する (TS の診断は使わない)。
-const baseExtensions: Extension[] = [
-  javascript(),
-  linter(createJsLintSource(), { delay: 400 }),
-  lintGutter(),
-]
+// 構文エラー・型エラーの表示 (tsLinterWorker) は言語サービスの準備後に差し込む。
+const baseExtensions: Extension[] = [javascript({ typescript: true }), lintGutter()]
 
 /**
- * JavaScript モードのコードエディタ本体 (SPEC 3)。
+ * TypeScript モードのコードエディタ本体 (SPEC 3)。
  * CodeMirror をメインチャンクから切り離すため、Editor から React.lazy で読み込む。
  *
- * TypeScript 言語サービスを Web Worker で起動し、補完/hover を型認識化する。
+ * TypeScript 言語サービスを Web Worker で起動し、補完 / hover / 型エラー表示を型認識化する。
  * Worker の初期化は非同期なので、準備完了後に Compartment 経由で拡張を差し込む。
  */
 export default function EditorImpl({ value, onChange, theme }: Props) {
@@ -68,6 +63,7 @@ export default function EditorImpl({ value, onChange, theme }: Props) {
         effects: tsCompartment.reconfigure([
           tsFacetWorker.of({ worker, path: TS_PATH }),
           tsSyncWorker(),
+          tsLinterWorker(),
           autocompletion({ override: [tsAutocompleteWorker()] }),
           tsHoverWorker(),
         ]),

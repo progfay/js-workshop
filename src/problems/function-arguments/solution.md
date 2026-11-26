@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function math(a, b, c) {
+```ts
+function math(a: number, b: number, c: number): number {
   return b * c + a;
 }
 ```

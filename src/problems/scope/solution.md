@@ -2,7 +2,7 @@
 
 `secondFunction` の中に次の1行を置きます。
 
-```js
+```ts
 result = `a: ${a}, b: ${b}, c: ${c}`;
 ```
 

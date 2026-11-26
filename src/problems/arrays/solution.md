@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const pizzaToppings = ["tomato sauce", "cheese", "pepperoni"];
 ```
 

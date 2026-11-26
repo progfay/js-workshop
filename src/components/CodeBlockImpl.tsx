@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * 読み取り専用の CodeMirror で JavaScript をシンタックスハイライト表示する本体。
+ * 読み取り専用の CodeMirror で TypeScript をシンタックスハイライト表示する本体。
  * CodeMirror をメインチャンクから切り離すため、CodeBlock から React.lazy で読み込む。
  */
 export default function CodeBlockImpl({ code, theme }: Props) {
@@ -18,7 +18,7 @@ export default function CodeBlockImpl({ code, theme }: Props) {
       value={code}
       theme={theme}
       editable={false}
-      extensions={[javascript()]}
+      extensions={[javascript({ typescript: true })]}
       basicSetup={{
         lineNumbers: false,
         foldGutter: false,

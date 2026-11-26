@@ -1,7 +1,7 @@
 # 解説
 
-```js
-const makeCounter = () => {
+```ts
+const makeCounter = (): [() => number, () => number] => {
   let count = 0;
   const increment = () => {
     count += 1;

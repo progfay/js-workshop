@@ -21,6 +21,9 @@
 
     "types": ["vite/client"]
   },
+  // src/problems は受講者向けの未完成コード (テンプレート / テスト) なので対象外。
+  // 採点時に runtime/typeCheckWorker で別途型チェックする。
   "include": ["src"],
+  "exclude": ["src/problems/*/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

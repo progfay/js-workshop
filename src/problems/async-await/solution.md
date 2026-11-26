@@ -1,8 +1,8 @@
 # 解説
 
-```js
-async function getAllPosts(users) {
-  const all = [];
+```ts
+async function getAllPosts(users: string[]): Promise<string[]> {
+  const all: string[] = [];
   for (const user of users) {
     const posts = await getPosts(user);
     for (const post of posts) {

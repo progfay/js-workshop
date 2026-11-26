@@ -3,7 +3,7 @@
 `Promise.all([...])` は複数の Promise をまとめて待ち、**すべて**が resolve したら
 結果を**元の順番のまま**配列で返す Promise になります。
 
-```js
+```ts
 const results = await Promise.all([p1, p2, p3]);
 ```
 
@@ -14,7 +14,7 @@ const results = await Promise.all([p1, p2, p3]);
 
 `Promise.all` を使うと、すべての計算を並行して待てます。
 
-```js
+```ts
 await squareAll([1, 2, 3]); // -> [1, 4, 9]
 ```
 

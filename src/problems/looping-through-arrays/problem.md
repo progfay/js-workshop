@@ -2,7 +2,7 @@
 
 配列の各要素を先頭から順に処理するには `for...of` が便利です。
 
-```js
+```ts
 const greetings = ["hello", "hi"];
 for (const greeting of greetings) {
   console.log(greeting);
@@ -13,7 +13,7 @@ for (const greeting of greetings) {
 
 次の配列 `pets` が与えられています。
 
-```js
+```ts
 const pets = ["cat", "dog", "rat"];
 ```
 

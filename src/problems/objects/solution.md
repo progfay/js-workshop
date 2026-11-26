@@ -1,6 +1,6 @@
 # 解説
 
-```js
+```ts
 const pizza = {
   toppings: ["cheese", "sauce", "pepperoni"],
   crust: "deep dish",

@@ -1,7 +1,7 @@
 # 解説
 
-```js
-function eat(food) {
+```ts
+function eat(food: string): string {
   return food + " tasted really good.";
 }
 ```

@@ -7,7 +7,7 @@
 - `5` で割り切れる → 文字列 `"Buzz"`
 - それ以外 → 数値 `n` をそのまま
 
-```js
+```ts
 fizzbuzz(1); // -> 1
 fizzbuzz(3); // -> "Fizz"
 fizzbuzz(5); // -> "Buzz"
